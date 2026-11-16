@@ -1,0 +1,18 @@
+item_id,item_name,category,in_store_units,zomato_units,total_units,zomato_share_pct,in_store_net_inr,zomato_net_inr,total_net_inr,promotion_candidacy_status
+COF-03,Velvet Cappuccino,Coffee,1151,866,2017,42.9,260200.26,207490.75,467691.01,Balanced / Specialty
+BAK-01,Butter Flaky Croissant,Bakery,1091,836,1927,43.4,193503.25,155940.97,349444.22,Balanced / Specialty
+COF-02,Classic Americano,Coffee,878,443,1321,33.5,164828.1,87329.83,252157.93,Balanced / Specialty
+BAK-03,Blueberry Crumble Muffin,Bakery,812,590,1402,42.1,159826.85,122513.55,282340.4,Balanced / Specialty
+BAK-02,Toasted Almond Biscotti,Bakery,616,0,616,0.0,85098.42,0.0,85098.42,"HIGH PRIORITY: Proven In-Store, Severe Zomato Deficit"
+COF-01,Espresso Single Origin,Coffee,609,0,609,0.0,95851.68,0.0,95851.68,"HIGH PRIORITY: Proven In-Store, Severe Zomato Deficit"
+COF-06,Hazelnut Praline Latte,Coffee,542,706,1248,56.6,144663.24,197631.37,342294.61,Delivery Leader
+COF-04,Artisan Flat White,Coffee,540,261,801,32.6,132236.97,68101.12,200338.09,Balanced / Specialty
+COF-08,Iced Caramel Macchiato,Coffee,419,743,1162,63.9,115724.0,216192.16,331916.16,Delivery Leader
+FOD-01,Sourdough Avocado Toast,Food,416,412,828,49.8,130335.97,137969.11,268305.08,Balanced / Specialty
+FOD-03,Truffle Mushroom Melt,Food,416,464,880,52.7,137839.33,164404.81,302244.14,Delivery Leader
+SPC-02,Uji Ceremonial Matcha,Specialty,381,0,381,0.0,115700.07,0.0,115700.07,"HIGH PRIORITY: Proven In-Store, Severe Zomato Deficit"
+FOD-02,Paneer Tikka Focaccia,Food,379,809,1188,68.1,108492.18,244087.94,352580.12,Delivery Leader
+SPC-01,Cascara Berry Spritzer,Specialty,324,146,470,31.1,70631.0,33355.38,103986.38,Balanced / Specialty
+COF-07,Single Origin Pour Over,Coffee,264,0,264,0.0,75719.0,0.0,75719.0,"HIGH PRIORITY: Proven In-Store, Severe Zomato Deficit"
+COF-05,Vanilla Cold Brew,Coffee,262,0,262,0.0,67258.28,0.0,67258.28,"HIGH PRIORITY: Proven In-Store, Severe Zomato Deficit"
+SPC-03,Belgian Dark Hot Chocolate,Specialty,193,326,519,62.8,51455.39,92170.14,143625.53,Delivery Leader

@@ -1,0 +1,9 @@
+test_case_id,scenario,po_number,line_item,supplier_id,material_code,ordered_qty,po_unit_price,expected_delivery_date,expected_status,expected_reasons,expected_risk_amt
+TC-01,Perfect 1:1:1 Match (All documents agree),PO-45001001,10,VEND-1001,MAT-101,100.0,500.0,2026-10-15,CLEAN_MATCH,CLEAN_MATCH,0.0
+TC-02,Partial Receipt Within Window (NOT an exception!),PO-45001002,10,VEND-1002,MAT-103,200.0,150.0,2026-12-05,CLEAN_MATCH,CLEAN_MATCH,0.0
+TC-03,Split Receipts & Split Invoices (Anti-Fan-Out Benchmark),PO-45001003,10,VEND-1004,MAT-107,100.0,1000.0,2026-10-25,CLEAN_MATCH,CLEAN_MATCH,0.0
+TC-04,Missing Goods Receipt (Invoiced without MIGO receipt),PO-45001004,10,VEND-1005,MAT-106,50.0,800.0,2026-10-20,EXCEPTION,MISSING_GR,40000.0
+TC-05,"Quantity Over-Invoiced (Billed 100, Received 70)",PO-45001005,10,VEND-1002,MAT-104,100.0,250.0,2026-10-15,EXCEPTION,QUANTITY_OVER_INVOICE,7500.0
+TC-06,Price Variance Outside Tolerance (+10% hike: ₹220 vs ₹200 PO),PO-45001006,10,VEND-1003,MAT-105,500.0,200.0,2026-10-10,EXCEPTION,PRICE_VARIANCE,10000.0
+TC-07,"Overdue Open PO Line (Expected Oct 10, 150 units undelivered)",PO-45001007,10,VEND-1001,MAT-102,200.0,400.0,2026-10-10,EXCEPTION,OVERDUE_OPEN_PO,60000.0
+TC-08,Compound Multi-Exception (Over-invoiced + Price Variance),PO-45001008,10,VEND-1004,MAT-108,100.0,300.0,2026-10-20,EXCEPTION,QUANTITY_OVER_INVOICE; PRICE_VARIANCE,9000.0

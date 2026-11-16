@@ -1,0 +1,122 @@
+// ==============================================================================
+// SLOW BREW SALES & DELIVERY PERFORMANCE — DAX MEASURES LIBRARY
+// Compatible with Microsoft Power BI Desktop
+// ==============================================================================
+
+// ------------------------------------------------------------------------------
+// 1. ORDER & VOLUME MEASURES
+// ------------------------------------------------------------------------------
+
+[Total Orders Placed] = 
+COUNTROWS(fact_orders)
+
+[Completed Orders] = 
+CALCULATE(
+    COUNTROWS(fact_orders),
+    fact_orders[order_status] = "COMPLETED"
+)
+
+[Cancelled Orders] = 
+CALCULATE(
+    COUNTROWS(fact_orders),
+    fact_orders[order_status] = "CANCELLED"
+)
+
+[Cancellation Rate] = 
+DIVIDE([Cancelled Orders], [Total Orders Placed], 0)
+
+[Total Units Sold] = 
+CALCULATE(
+    SUM(fact_order_items[quantity]),
+    fact_orders[order_status] = "COMPLETED"
+)
+
+[Avg Items Per Completed Order] = 
+DIVIDE([Total Units Sold], [Completed Orders], 0)
+
+// ------------------------------------------------------------------------------
+// 2. FINANCIAL REVENUE MEASURES
+// ------------------------------------------------------------------------------
+
+[Gross Sales] = 
+CALCULATE(
+    SUM(fact_orders[gross_order_total]),
+    fact_orders[order_status] = "COMPLETED"
+)
+
+[Total Discounts] = 
+CALCULATE(
+    SUM(fact_orders[order_discount_amt]),
+    fact_orders[order_status] = "COMPLETED"
+)
+
+[Total Refunds] = 
+CALCULATE(
+    SUM(fact_orders[order_refund_amt]),
+    fact_orders[order_status] = "COMPLETED"
+)
+
+[Net Sales] = 
+CALCULATE(
+    SUM(fact_orders[net_sales_amount]),
+    fact_orders[order_status] = "COMPLETED"
+)
+
+[Average Order Value (AOV)] = 
+DIVIDE([Net Sales], [Completed Orders], 0)
+
+[Discount Rate %] = 
+DIVIDE([Total Discounts], [Gross Sales], 0)
+
+[Refund Rate %] = 
+DIVIDE([Total Refunds], [Gross Sales], 0)
+
+// ------------------------------------------------------------------------------
+// 3. CHANNEL-SPECIFIC & DELIVERY MIX MEASURES
+// ------------------------------------------------------------------------------
+
+[In-Store Net Sales] = 
+CALCULATE(
+    [Net Sales],
+    dim_channels[channel_id] = "CHN-POS"
+)
+
+[Zomato Net Sales] = 
+CALCULATE(
+    [Net Sales],
+    dim_channels[channel_id] = "CHN-ZOM"
+)
+
+[In-Store Completed Orders] = 
+CALCULATE(
+    [Completed Orders],
+    dim_channels[channel_id] = "CHN-POS"
+)
+
+[Zomato Completed Orders] = 
+CALCULATE(
+    [Completed Orders],
+    dim_channels[channel_id] = "CHN-ZOM"
+)
+
+[Delivery Order Mix %] = 
+DIVIDE([Zomato Completed Orders], [Completed Orders], 0)
+
+[Delivery Revenue Mix %] = 
+DIVIDE([Zomato Net Sales], [Net Sales], 0)
+
+// ------------------------------------------------------------------------------
+// 4. ESTIMATED PLATFORM PAYOUTS & NET CONTRIBUTION (PROMOTION FEASIBILITY)
+// ------------------------------------------------------------------------------
+// Assumes Zomato nominal commission take-rate of 20% on Net Sales
+
+[Estimated Zomato Platform Commissions] = 
+CALCULATE(
+    [Zomato Net Sales] * 0.20
+)
+
+[Estimated Zomato Net Payout] = 
+[Zomato Net Sales] - [Estimated Zomato Platform Commissions]
+
+[Estimated Net Payout Per Delivery Order] = 
+DIVIDE([Estimated Zomato Net Payout], [Zomato Completed Orders], 0)

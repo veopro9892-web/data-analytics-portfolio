@@ -1,0 +1,9 @@
+supplier_id,supplier_name,city,payment_terms,total_po_lines,clean_matched_lines,exception_lines,exception_rate_pct,total_invoiced_inr,total_disputed_risk_inr,supplier_risk_tier
+VEND-1003,Milma Fresh Dairy Federation,Kochi,Net 30,14,6,8,57.1,1720600.0,567400.0,HIGH RISK (Audit Required)
+VEND-1007,Western Bio-Degradable Cups Ltd,Pune,Net 30,6,2,4,66.7,548400.0,181400.0,HIGH RISK (Audit Required)
+VEND-1001,Coorg Specialty Coffee Estates,Madikeri,Net 30,10,8,2,20.0,739500.0,156000.0,MEDIUM RISK (Monitor)
+VEND-1004,Precision Espresso Spares & Valves,Mumbai,Net 60,12,7,5,41.7,781200.0,132600.0,HIGH RISK (Audit Required)
+VEND-1008,Malabar Organic Spices & Cocoa,Calicut,Net 45,9,4,5,55.6,1407760.0,125760.0,HIGH RISK (Audit Required)
+VEND-1006,Himalayan Mineral Water Supplies,Dehradun,Net 45,9,6,3,33.3,699500.0,120600.0,HIGH RISK (Audit Required)
+VEND-1002,Bharat Eco Packaging Solutions,Bengaluru,Net 45,10,8,2,20.0,861000.0,61500.0,MEDIUM RISK (Monitor)
+VEND-1005,Deccan Artisanal Syrups & Flavor,Hyderabad,Net 30,6,5,1,16.7,334000.0,40000.0,MEDIUM RISK (Monitor)

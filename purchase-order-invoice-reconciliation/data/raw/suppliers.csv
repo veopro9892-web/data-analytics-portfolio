@@ -1,0 +1,9 @@
+supplier_id,supplier_name,vendor_code,city,payment_terms,contact_email
+VEND-1001,Coorg Specialty Coffee Estates,1000101,Madikeri,Net 30,accounts@coorgspecialty.in
+VEND-1002,Bharat Eco Packaging Solutions,1000102,Bengaluru,Net 45,finance@bharatecopack.com
+VEND-1003,Milma Fresh Dairy Federation,1000103,Kochi,Net 30,billing@milmadairy.org
+VEND-1004,Precision Espresso Spares & Valves,1000104,Mumbai,Net 60,ap@precisionspares.co.in
+VEND-1005,Deccan Artisanal Syrups & Flavor,1000105,Hyderabad,Net 30,accounts@deccansyrups.com
+VEND-1006,Himalayan Mineral Water Supplies,1000106,Dehradun,Net 45,orders@himalayanwater.in
+VEND-1007,Western Bio-Degradable Cups Ltd,1000107,Pune,Net 30,tax@westernbio.com
+VEND-1008,Malabar Organic Spices & Cocoa,1000108,Calicut,Net 45,ap@malabarspices.com

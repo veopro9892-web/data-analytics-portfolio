@@ -1,0 +1,18 @@
+item_id,item_name,category,base_price_in_store
+COF-01,Espresso Single Origin,Coffee,160.0
+COF-02,Classic Americano,Coffee,190.0
+COF-03,Velvet Cappuccino,Coffee,230.0
+COF-04,Artisan Flat White,Coffee,250.0
+COF-05,Vanilla Cold Brew,Coffee,260.0
+COF-06,Hazelnut Praline Latte,Coffee,270.0
+COF-07,Single Origin Pour Over,Coffee,290.0
+COF-08,Iced Caramel Macchiato,Coffee,280.0
+BAK-01,Butter Flaky Croissant,Bakery,180.0
+BAK-02,Toasted Almond Biscotti,Bakery,140.0
+BAK-03,Blueberry Crumble Muffin,Bakery,200.0
+FOD-01,Sourdough Avocado Toast,Food,320.0
+FOD-02,Paneer Tikka Focaccia,Food,290.0
+FOD-03,Truffle Mushroom Melt,Food,340.0
+SPC-01,Cascara Berry Spritzer,Specialty,220.0
+SPC-02,Uji Ceremonial Matcha,Specialty,310.0
+SPC-03,Belgian Dark Hot Chocolate,Specialty,270.0

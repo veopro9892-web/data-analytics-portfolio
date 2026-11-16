@@ -1,0 +1,239 @@
+[
+  {
+    "test_case_id": "TC-01",
+    "scenario": "Perfect 1:1:1 Match (All documents agree)",
+    "po_number": "PO-45001001",
+    "line_item": 10,
+    "supplier_id": "VEND-1001",
+    "material_code": "MAT-101",
+    "ordered_qty": 100.0,
+    "po_unit_price": 500.0,
+    "expected_delivery_date": "2026-10-15",
+    "gr_records": [
+      {
+        "gr_number": "GR-500001",
+        "gr_date": "2026-10-14",
+        "qty": 100.0
+      }
+    ],
+    "inv_records": [
+      {
+        "invoice_number": "INV-900001",
+        "inv_date": "2026-10-18",
+        "qty": 100.0,
+        "unit_price": 500.0
+      }
+    ],
+    "expected_status": "CLEAN_MATCH",
+    "expected_reasons": "CLEAN_MATCH",
+    "expected_risk_amt": 0.0
+  },
+  {
+    "test_case_id": "TC-02",
+    "scenario": "Partial Receipt Within Window (NOT an exception!)",
+    "po_number": "PO-45001002",
+    "line_item": 10,
+    "supplier_id": "VEND-1002",
+    "material_code": "MAT-103",
+    "ordered_qty": 200.0,
+    "po_unit_price": 150.0,
+    "expected_delivery_date": "2026-12-05",
+    "gr_records": [
+      {
+        "gr_number": "GR-500002",
+        "gr_date": "2026-11-10",
+        "qty": 100.0
+      }
+    ],
+    "inv_records": [
+      {
+        "invoice_number": "INV-900002",
+        "inv_date": "2026-11-12",
+        "qty": 100.0,
+        "unit_price": 150.0
+      }
+    ],
+    "expected_status": "CLEAN_MATCH",
+    "expected_reasons": "CLEAN_MATCH",
+    "expected_risk_amt": 0.0
+  },
+  {
+    "test_case_id": "TC-03",
+    "scenario": "Split Receipts & Split Invoices (Anti-Fan-Out Benchmark)",
+    "po_number": "PO-45001003",
+    "line_item": 10,
+    "supplier_id": "VEND-1004",
+    "material_code": "MAT-107",
+    "ordered_qty": 100.0,
+    "po_unit_price": 1000.0,
+    "expected_delivery_date": "2026-10-25",
+    "gr_records": [
+      {
+        "gr_number": "GR-500003",
+        "gr_date": "2026-10-05",
+        "qty": 40.0
+      },
+      {
+        "gr_number": "GR-500004",
+        "gr_date": "2026-10-12",
+        "qty": 60.0
+      }
+    ],
+    "inv_records": [
+      {
+        "invoice_number": "INV-900003",
+        "inv_date": "2026-10-08",
+        "qty": 40.0,
+        "unit_price": 1000.0
+      },
+      {
+        "invoice_number": "INV-900004",
+        "inv_date": "2026-10-15",
+        "qty": 60.0,
+        "unit_price": 1000.0
+      }
+    ],
+    "expected_status": "CLEAN_MATCH",
+    "expected_reasons": "CLEAN_MATCH",
+    "expected_risk_amt": 0.0
+  },
+  {
+    "test_case_id": "TC-04",
+    "scenario": "Missing Goods Receipt (Invoiced without MIGO receipt)",
+    "po_number": "PO-45001004",
+    "line_item": 10,
+    "supplier_id": "VEND-1005",
+    "material_code": "MAT-106",
+    "ordered_qty": 50.0,
+    "po_unit_price": 800.0,
+    "expected_delivery_date": "2026-10-20",
+    "gr_records": [],
+    "inv_records": [
+      {
+        "invoice_number": "INV-900005",
+        "inv_date": "2026-10-25",
+        "qty": 50.0,
+        "unit_price": 800.0
+      }
+    ],
+    "expected_status": "EXCEPTION",
+    "expected_reasons": "MISSING_GR",
+    "expected_risk_amt": 40000.0
+  },
+  {
+    "test_case_id": "TC-05",
+    "scenario": "Quantity Over-Invoiced (Billed 100, Received 70)",
+    "po_number": "PO-45001005",
+    "line_item": 10,
+    "supplier_id": "VEND-1002",
+    "material_code": "MAT-104",
+    "ordered_qty": 100.0,
+    "po_unit_price": 250.0,
+    "expected_delivery_date": "2026-10-15",
+    "gr_records": [
+      {
+        "gr_number": "GR-500005",
+        "gr_date": "2026-10-10",
+        "qty": 70.0
+      }
+    ],
+    "inv_records": [
+      {
+        "invoice_number": "INV-900006",
+        "inv_date": "2026-10-14",
+        "qty": 100.0,
+        "unit_price": 250.0
+      }
+    ],
+    "expected_status": "EXCEPTION",
+    "expected_reasons": "QUANTITY_OVER_INVOICE",
+    "expected_risk_amt": 7500.0
+  },
+  {
+    "test_case_id": "TC-06",
+    "scenario": "Price Variance Outside Tolerance (+10% hike: \u20b9220 vs \u20b9200 PO)",
+    "po_number": "PO-45001006",
+    "line_item": 10,
+    "supplier_id": "VEND-1003",
+    "material_code": "MAT-105",
+    "ordered_qty": 500.0,
+    "po_unit_price": 200.0,
+    "expected_delivery_date": "2026-10-10",
+    "gr_records": [
+      {
+        "gr_number": "GR-500006",
+        "gr_date": "2026-10-02",
+        "qty": 500.0
+      }
+    ],
+    "inv_records": [
+      {
+        "invoice_number": "INV-900007",
+        "inv_date": "2026-10-05",
+        "qty": 500.0,
+        "unit_price": 220.0
+      }
+    ],
+    "expected_status": "EXCEPTION",
+    "expected_reasons": "PRICE_VARIANCE",
+    "expected_risk_amt": 10000.0
+  },
+  {
+    "test_case_id": "TC-07",
+    "scenario": "Overdue Open PO Line (Expected Oct 10, 150 units undelivered)",
+    "po_number": "PO-45001007",
+    "line_item": 10,
+    "supplier_id": "VEND-1001",
+    "material_code": "MAT-102",
+    "ordered_qty": 200.0,
+    "po_unit_price": 400.0,
+    "expected_delivery_date": "2026-10-10",
+    "gr_records": [
+      {
+        "gr_number": "GR-500007",
+        "gr_date": "2026-10-08",
+        "qty": 50.0
+      }
+    ],
+    "inv_records": [
+      {
+        "invoice_number": "INV-900008",
+        "inv_date": "2026-10-12",
+        "qty": 50.0,
+        "unit_price": 400.0
+      }
+    ],
+    "expected_status": "EXCEPTION",
+    "expected_reasons": "OVERDUE_OPEN_PO",
+    "expected_risk_amt": 60000.0
+  },
+  {
+    "test_case_id": "TC-08",
+    "scenario": "Compound Multi-Exception (Over-invoiced + Price Variance)",
+    "po_number": "PO-45001008",
+    "line_item": 10,
+    "supplier_id": "VEND-1004",
+    "material_code": "MAT-108",
+    "ordered_qty": 100.0,
+    "po_unit_price": 300.0,
+    "expected_delivery_date": "2026-10-20",
+    "gr_records": [
+      {
+        "gr_number": "GR-500008",
+        "gr_date": "2026-10-18",
+        "qty": 60.0
+      }
+    ],
+    "inv_records": [
+      {
+        "invoice_number": "INV-900009",
+        "inv_date": "2026-10-22",
+        "qty": 80.0,
+        "unit_price": 330.0
+      }
+    ],
+    "expected_status": "EXCEPTION",
+    "expected_reasons": "QUANTITY_OVER_INVOICE; PRICE_VARIANCE",
+    "expected_risk_amt": 9000.0
+  }
+]

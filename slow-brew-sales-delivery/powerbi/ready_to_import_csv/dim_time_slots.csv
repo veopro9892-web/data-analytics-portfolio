@@ -1,0 +1,5 @@
+slot_id,slot_name,start_hour,end_hour,slot_description
+SLOT-01,Morning Rush,8,11,08:00 - 11:59 Breakfast and morning coffee peak
+SLOT-02,Afternoon Slump,12,15,"12:00 - 15:59 Post-lunch dip, iced coffee, workday refresh"
+SLOT-03,Evening Social,16,19,"16:00 - 19:59 Post-work socializing, specialty drinks, toasts"
+SLOT-04,Night Chill,20,23,"20:00 - 23:00 Late-night relaxation, desserts, hot chocolates"

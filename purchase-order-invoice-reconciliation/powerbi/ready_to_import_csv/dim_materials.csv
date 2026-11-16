@@ -1,0 +1,9 @@
+material_code,material_description,material_group,base_uom
+MAT-101,Arabica Green Coffee Beans Grade A,RAW_COFFEE,KG
+MAT-102,Robusta Cherry Washed Coffee Beans,RAW_COFFEE,KG
+MAT-103,Kraft Paper Coffee Pouches (1kg Valve),PACKAGING,BOX
+MAT-104,Double Wall Insulated Paper Cups (250ml),PACKAGING,BOX
+MAT-105,Barista Oat Milk (1 Litre Tetra Pak),DAIRY_SYRUP,BOX
+MAT-106,Organic Vanilla Bean Infusion Syrup,DAIRY_SYRUP,LTR
+MAT-107,Commercial Grouphead Gasket 58mm,EQUIPMENT_PARTS,EA
+MAT-108,Espresso Machine Food-Safe Descaler,EQUIPMENT_PARTS,LTR

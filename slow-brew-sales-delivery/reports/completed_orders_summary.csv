@@ -1,0 +1,3 @@
+channel_name,total_orders,completed_orders,cancelled_orders,cancellation_rate_pct,gross_sales_inr,total_discounts_inr,total_refunds_inr,net_sales_inr,aov_inr
+In-Store POS,4880,4732,148,3.03,2206460.0,17412.0,16544.0,2109364.0,445.77
+Zomato Delivery,3088,2918,170,5.51,1931611.0,80671.15,18240.8,1727187.05,591.91

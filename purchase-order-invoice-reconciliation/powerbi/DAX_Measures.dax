@@ -1,0 +1,93 @@
+// ==============================================================================
+// ACCOUNTS PAYABLE 3-WAY MATCH RECONCILIATION — DAX MEASURES LIBRARY
+// Compatible with Microsoft Power BI Desktop
+// Currency: INR (₹)
+// ==============================================================================
+
+// ------------------------------------------------------------------------------
+// 1. PO-LINE MATCH COUNTS & RATES
+// ------------------------------------------------------------------------------
+
+[Total PO Lines] = 
+COUNTROWS(rpt_3way_match_exceptions)
+
+[Clean Matched Lines] = 
+CALCULATE(
+    COUNTROWS(rpt_3way_match_exceptions),
+    rpt_3way_match_exceptions[match_status] = "CLEAN_MATCH"
+)
+
+[Exception Lines] = 
+CALCULATE(
+    COUNTROWS(rpt_3way_match_exceptions),
+    rpt_3way_match_exceptions[match_status] = "EXCEPTION"
+)
+
+[Clean Match Rate %] = 
+DIVIDE([Clean Matched Lines], [Total PO Lines], 0)
+
+[Exception Rate %] = 
+DIVIDE([Exception Lines], [Total PO Lines], 0)
+
+// ------------------------------------------------------------------------------
+// 2. FINANCIAL EXPOSURE & RISK MEASURES
+// ------------------------------------------------------------------------------
+
+[Total PO Commitment (₹)] = 
+SUM(rpt_3way_match_exceptions[po_line_total])
+
+[Total Invoiced Amount (₹)] = 
+SUM(rpt_3way_match_exceptions[invoiced_amount])
+
+[Total Disputed Amount at Risk (₹)] = 
+SUM(rpt_3way_match_exceptions[amount_at_risk_inr])
+
+[Risk Exposure Rate %] = 
+DIVIDE([Total Disputed Amount at Risk (₹)], [Total Invoiced Amount (₹)], 0)
+
+// ------------------------------------------------------------------------------
+// 3. EXCEPTION ROOT CAUSE MEASURES
+// ------------------------------------------------------------------------------
+
+[Missing GR Lines] = 
+CALCULATE(
+    COUNTROWS(rpt_3way_match_exceptions),
+    SEARCH("MISSING_GR", rpt_3way_match_exceptions[exception_reasons], 1, 0) > 0
+)
+
+[Quantity Over-Invoiced Lines] = 
+CALCULATE(
+    COUNTROWS(rpt_3way_match_exceptions),
+    SEARCH("QUANTITY_OVER_INVOICE", rpt_3way_match_exceptions[exception_reasons], 1, 0) > 0
+)
+
+[Price Variance Lines] = 
+CALCULATE(
+    COUNTROWS(rpt_3way_match_exceptions),
+    SEARCH("PRICE_VARIANCE", rpt_3way_match_exceptions[exception_reasons], 1, 0) > 0
+)
+
+[Overdue Open PO Lines] = 
+CALCULATE(
+    COUNTROWS(rpt_3way_match_exceptions),
+    SEARCH("OVERDUE_OPEN_PO", rpt_3way_match_exceptions[exception_reasons], 1, 0) > 0
+)
+
+[Multi-Exception Lines] = 
+CALCULATE(
+    COUNTROWS(rpt_3way_match_exceptions),
+    SEARCH(";", rpt_3way_match_exceptions[exception_reasons], 1, 0) > 0
+)
+
+// ------------------------------------------------------------------------------
+// 4. SUPPLIER CONCENTRATION & AUDIT
+// ------------------------------------------------------------------------------
+
+[High Risk Supplier Count] = 
+CALCULATE(
+    DISTINCTCOUNT(rpt_3way_match_exceptions[supplier_id]),
+    FILTER(
+        VALUES(rpt_3way_match_exceptions[supplier_id]),
+        [Exception Rate %] > 0.25
+    )
+)

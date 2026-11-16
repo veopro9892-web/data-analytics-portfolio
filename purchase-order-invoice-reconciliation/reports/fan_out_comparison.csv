@@ -1,0 +1,3 @@
+method,po_number,line_item,ordered_qty,po_unit_price,joined_row_count,reported_received_qty,reported_invoiced_qty,reported_invoiced_amount_inr,error_diagnosis
+Naive Raw Join (Incorrect),PO-45001003,10,100.0,1000.0,4,200.0,200.0,200000.0,100% Artificial Inflation (2 receipts x 2 invoices)
+Independent Aggregation (Correct),PO-45001003,10,100.0,1000.0,1,100.0,100.0,100000.0,Zero Inflation: Exact 1-to-1 Line Match

@@ -1,0 +1,3 @@
+channel_id,channel_name,channel_type,commission_pct
+CHN-POS,In-Store POS,Offline POS,0.0
+CHN-ZOM,Zomato Delivery,Online Delivery,20.0
