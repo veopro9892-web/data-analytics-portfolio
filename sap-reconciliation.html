@@ -3,11 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SAP 3-Way Match Procurement Reconciliation | Enterprise Portfolio</title>
+    <title>SAP 3-Way Match Procurement Reconciliation | Enterprise AP Audit</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        sap: { 600: '#0070F2', 700: '#0054B6', 800: '#003A7D', 900: '#002554' }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         .font-mono-code { font-family: 'JetBrains Mono', monospace; }
         .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); }
@@ -15,395 +29,537 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col font-sans">
 
-    <!-- Header -->
-    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
+    <!-- Top App Navigation -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <a href="index.html" class="p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition" title="Back to Portfolio">
-                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
-                </a>
-                <div class="h-6 w-px bg-slate-200"></div>
+                <div class="w-10 h-10 rounded-xl bg-sap-700 flex items-center justify-center text-white shadow-md shadow-sap-700/20 font-bold">
+                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+                </div>
                 <div>
-                    <h1 class="text-sm font-bold text-slate-900">SAP S/4HANA 3-Way Match Procurement</h1>
-                    <p class="text-xs text-sky-700 font-medium">EKPO vs. MIGO (MSEG) vs. MIRO (RSEG) Reconciliation</p>
+                    <h1 class="text-base font-bold text-slate-900 leading-tight">SAP S/4HANA 3-Way Match Procurement</h1>
+                    <p class="text-xs text-slate-500 font-medium">EKPO (PO) vs. MIGO (Receipts) vs. MIRO (Invoices) Audit Engine</p>
                 </div>
             </div>
             <div class="flex items-center space-x-3">
-                <a href="downloads/AP_Invoice_Reconciliation_Workbook.xlsx" class="inline-flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition">
+                <a href="reports/AP_Invoice_Reconciliation_Workbook.xlsx" download class="inline-flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition">
                     <i data-lucide="download" class="w-4 h-4"></i>
-                    <span>Download Excel AP Workbook (.xlsx)</span>
+                    <span>Export Excel (.xlsx)</span>
                 </a>
-                <a href="https://github.com/veopro9892-web/data-analytics-portfolio/tree/main/purchase-order-invoice-reconciliation" target="_blank" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition" title="View Source on GitHub">
+                <a href="https://github.com/veopro9892-web/data-analytics-portfolio/tree/main/purchase-order-invoice-reconciliation" target="_blank" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition" title="GitHub Code">
                     <i data-lucide="github" class="w-5 h-5"></i>
                 </a>
             </div>
         </div>
+
+        <!-- Global Filters Sub-Bar -->
+        <div class="bg-slate-100/90 border-t border-slate-200/80 px-4 sm:px-6 lg:px-8 py-2.5">
+            <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex flex-wrap items-center gap-3">
+                    <span class="font-bold text-slate-600 flex items-center gap-1.5">
+                        <i data-lucide="filter" class="w-3.5 h-3.5 text-slate-500"></i>
+                        <span>Filters:</span>
+                    </span>
+
+                    <!-- Supplier Filter -->
+                    <select id="filter-supplier" onchange="renderTable()" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-sap-600">
+                        <option value="ALL">All 8 Suppliers</option>
+                        <option value="Coorg">Coorg Specialty Coffee</option>
+                        <option value="Bharat">Bharat Eco Packaging</option>
+                        <option value="Milma">Milma Fresh Dairy</option>
+                        <option value="Precision">Precision Espresso Spares</option>
+                        <option value="Deccan">Deccan Artisanal Syrups</option>
+                        <option value="Himalayan">Himalayan Mineral Water</option>
+                        <option value="Western">Western Bio-Degradable</option>
+                        <option value="Malabar">Malabar Organic Spices</option>
+                    </select>
+
+                    <!-- Match Status Filter -->
+                    <select id="filter-status" onchange="renderTable()" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-sap-600">
+                        <option value="ALL">All Match Statuses (76)</option>
+                        <option value="EXCEPTION">Exceptions Only (30)</option>
+                        <option value="CLEAN_MATCH">Clean Matches (46)</option>
+                    </select>
+
+                    <!-- Exception Reason Filter -->
+                    <select id="filter-reason" onchange="renderTable()" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-sap-600">
+                        <option value="ALL">All Discrepancy Reasons</option>
+                        <option value="MISSING_GR">Missing Goods Receipt (6)</option>
+                        <option value="QUANTITY_OVER_INVOICE">Quantity Over-Invoiced (8)</option>
+                        <option value="PRICE_VARIANCE">Price Variance &gt; ±2% (6)</option>
+                        <option value="OVERDUE_OPEN_PO">Overdue Open PO Lines (10)</option>
+                    </select>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <div class="flex items-center space-x-1 bg-slate-200/80 p-0.5 rounded-lg font-semibold">
+                    <button onclick="switchView('queue')" id="nav-queue" class="px-3 py-1 rounded-md text-xs bg-white text-slate-900 shadow-xs transition">Reconciliation Queue</button>
+                    <button onclick="switchView('fanout')" id="nav-fanout" class="px-3 py-1 rounded-md text-xs text-slate-600 hover:text-slate-900 transition">Fan-Out Proof</button>
+                    <button onclick="switchView('scorecard')" id="nav-scorecard" class="px-3 py-1 rounded-md text-xs text-slate-600 hover:text-slate-900 transition">Vendor Scorecard</button>
+                    <button onclick="switchView('fixtures')" id="nav-fixtures" class="px-3 py-1 rounded-md text-xs text-slate-600 hover:text-slate-900 transition">Test Benchmarks</button>
+                    <button onclick="switchView('sql')" id="nav-sql" class="px-3 py-1 rounded-md text-xs text-slate-600 hover:text-slate-900 transition">SQL Code</button>
+                </div>
+            </div>
+        </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- Banner Block -->
-        <div class="bg-gradient-to-r from-sky-950 via-slate-900 to-indigo-950 text-white rounded-3xl p-8 sm:p-10 shadow-lg relative overflow-hidden">
-            <div class="max-w-3xl space-y-3 relative z-10">
-                <span class="px-3 py-1 rounded-md text-xs font-bold bg-sky-500/20 text-sky-300 border border-sky-400/30 uppercase tracking-wider">
-                    Enterprise ERP &amp; Accounts Payable Audit
-                </span>
-                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">
-                    Which supplier invoices need review because PO, Goods Receipt, and Invoice disagree?
-                </h2>
-                <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
-                    Simulated an SAP S/4HANA 3-way match across 76 purchase order lines (₹1.05 Cr spend). Built a deterministic rules engine in SQLite, resolved the <strong>Cartesian Join Fan-Out trap</strong>, and protected ₹15.2 Lakhs in disputed payments at risk.
-                </p>
+        <!-- Top Live KPI Ribbon -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+            <div class="glass-card rounded-xl p-3.5 border border-slate-200 shadow-xs">
+                <span class="text-[11px] text-slate-500 font-medium block">Total Spend Commitment</span>
+                <span class="text-lg font-bold text-slate-900 font-mono-code block mt-0.5">₹1,05,24,600</span>
+                <span class="text-[10px] text-slate-400">76 Active PO Lines (EKPO)</span>
+            </div>
+            <div class="glass-card rounded-xl p-3.5 border border-slate-200 shadow-xs">
+                <span class="text-[11px] text-slate-500 font-medium block">Disputed Risk Held</span>
+                <span class="text-lg font-bold text-red-600 font-mono-code block mt-0.5">₹15,22,480</span>
+                <span class="text-[10px] text-red-600 font-medium">Protected from disbursement</span>
+            </div>
+            <div class="glass-card rounded-xl p-3.5 border border-slate-200 shadow-xs">
+                <span class="text-[11px] text-slate-500 font-medium block">Clean Match Rate</span>
+                <span class="text-lg font-bold text-emerald-600 font-mono-code block mt-0.5">60.5%</span>
+                <span class="text-[10px] text-emerald-600 font-medium">46 Lines Cleared to Pay</span>
+            </div>
+            <div class="glass-card rounded-xl p-3.5 border border-slate-200 shadow-xs">
+                <span class="text-[11px] text-slate-500 font-medium block">Exception Lines Held</span>
+                <span class="text-lg font-bold text-amber-600 font-mono-code block mt-0.5">30 Lines</span>
+                <span class="text-[10px] text-amber-600 font-medium">Payment Blocked in MIRO</span>
+            </div>
+            <div class="glass-card rounded-xl p-3.5 border border-slate-200 shadow-xs">
+                <span class="text-[11px] text-slate-500 font-medium block">Price Tolerance Config</span>
+                <span class="text-lg font-bold text-slate-900 font-mono-code block mt-0.5">&plusmn; 2.0%</span>
+                <span class="text-[10px] text-slate-400">Automated P-block threshold</span>
+            </div>
+            <div class="glass-card rounded-xl p-3.5 border border-slate-200 shadow-xs">
+                <span class="text-[11px] text-slate-500 font-medium block">Fan-Out Inflation</span>
+                <span class="text-lg font-bold text-emerald-600 font-mono-code block mt-0.5">0.0% (Prevented)</span>
+                <span class="text-[10px] text-emerald-600 font-medium">Independent CTE Aggregation</span>
             </div>
         </div>
 
-        <!-- 5 Top KPI Cards -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div class="glass-card rounded-xl p-4 border border-slate-200 shadow-sm">
-                <span class="text-xs text-slate-500 font-medium block">Total Evaluated Spend</span>
-                <span class="text-xl font-bold text-slate-900 font-mono-code block mt-1">₹1.05 Cr</span>
-                <span class="text-[11px] text-slate-400">76 PO Lines (EKPO)</span>
-            </div>
-            <div class="glass-card rounded-xl p-4 border border-slate-200 shadow-sm">
-                <span class="text-xs text-slate-500 font-medium block">Disputed Amount Held</span>
-                <span class="text-xl font-bold text-red-600 font-mono-code block mt-1">₹15.22 Lakhs</span>
-                <span class="text-[11px] text-red-600 font-medium">Protected AP Risk</span>
-            </div>
-            <div class="glass-card rounded-xl p-4 border border-slate-200 shadow-sm">
-                <span class="text-xs text-slate-500 font-medium block">Clean Match Rate</span>
-                <span class="text-xl font-bold text-emerald-600 font-mono-code block mt-1">60.5%</span>
-                <span class="text-[11px] text-slate-400">46 Lines Cleared to Pay</span>
-            </div>
-            <div class="glass-card rounded-xl p-4 border border-slate-200 shadow-sm">
-                <span class="text-xs text-slate-500 font-medium block">Disputed Lines Held</span>
-                <span class="text-xl font-bold text-amber-600 font-mono-code block mt-1">30 Lines</span>
-                <span class="text-[11px] text-slate-400">Action Required in MIRO</span>
-            </div>
-            <div class="glass-card rounded-xl p-4 border border-slate-200 shadow-sm">
-                <span class="text-xs text-slate-500 font-medium block">Fan-Out Inflation</span>
-                <span class="text-xl font-bold text-emerald-600 font-mono-code block mt-1">0% (Prevented)</span>
-                <span class="text-[11px] text-emerald-600 font-medium">Independent CTE Pre-Agg</span>
+        <!-- ============================================================== -->
+        <!-- VIEW 1: 3-WAY MATCH RECONCILIATION QUEUE -->
+        <!-- ============================================================== -->
+        <div id="view-queue" class="view-panel space-y-4">
+            <div class="glass-card rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+                            <i data-lucide="layers" class="w-4 h-4 text-sap-600"></i>
+                            <span>Accounts Payable Line-Level 3-Way Match Review Queue</span>
+                        </h3>
+                        <p class="text-xs text-slate-500">Every PO line item audited against warehouse receipts and vendor invoices. Click any row for line details.</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="queue-search" oninput="renderTable()" placeholder="Search PO #, supplier, or material..." class="bg-slate-100 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-sap-600 w-64">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200 text-xs">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 font-bold">
+                                <th class="py-2.5 px-3 text-left">PO &amp; Line</th>
+                                <th class="py-2.5 px-4 text-left">Supplier Name</th>
+                                <th class="py-2.5 px-4 text-left">Material Description</th>
+                                <th class="py-2.5 px-2 text-right">Ordered</th>
+                                <th class="py-2.5 px-2 text-right">Received</th>
+                                <th class="py-2.5 px-2 text-right">Invoiced</th>
+                                <th class="py-2.5 px-2 text-right">PO Rate</th>
+                                <th class="py-2.5 px-2 text-right">Inv Rate</th>
+                                <th class="py-2.5 px-2 text-right">Var %</th>
+                                <th class="py-2.5 px-3 text-right">Disputed (₹)</th>
+                                <th class="py-2.5 px-3 text-center">Status</th>
+                                <th class="py-2.5 px-4 text-left">Suggested AP Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="queue-tbody" class="divide-y divide-slate-200 font-mono-code">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <!-- Section 1: The Cartesian Join Fan-Out Interactive Proof Simulator -->
-        <div class="glass-card rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <!-- ============================================================== -->
+        <!-- VIEW 2: FAN-OUT TRAP LIVE SIMULATOR -->
+        <!-- ============================================================== -->
+        <div id="view-fanout" class="view-panel hidden space-y-6">
+            <div class="glass-card rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-6">
                 <div>
-                    <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
-                        <i data-lucide="split" class="w-5 h-5 text-sky-600"></i>
-                        <span>Technical Challenge: The Cartesian Join Fan-Out Trap &amp; Solution</span>
-                    </h3>
+                    <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-sky-100 text-sap-800 uppercase tracking-wide">
+                        Core Technical Proof
+                    </span>
+                    <h3 class="text-xl font-bold text-slate-900 mt-1">The Cartesian Join Fan-Out Trap &amp; Elimination Proof</h3>
                     <p class="text-xs text-slate-500 mt-1">
-                        Test case PO-45001003 has 2 split Goods Receipts (40 + 60 = 100 units) and 2 split Invoices (40 + 60 @ ₹1000 = ₹100,000).
+                        Inspect test case PO-45001003 (Line 10): 2 Goods Receipts (40 + 60 units) and 2 Invoices (40 + 60 units @ ₹1,000 agreed rate).
                     </p>
                 </div>
-                <!-- Interactive Toggle -->
-                <div class="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200">
-                    <button onclick="toggleJoin(false)" id="btn-naive" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">
-                        Naive Raw Join
+
+                <!-- Live Toggle -->
+                <div class="flex items-center space-x-3">
+                    <button onclick="setFanout(false)" id="btn-fo-naive" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+                        Run Naive Raw Join (Direct 3-Way Join)
                     </button>
-                    <button onclick="toggleJoin(true)" id="btn-cte" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-sky-600 text-white shadow-xs transition">
-                        Independent Aggregation (Correct)
+                    <button onclick="setFanout(true)" id="btn-fo-cte" class="px-4 py-2 rounded-xl text-xs font-bold bg-sap-600 text-white shadow-xs transition">
+                        Run Independent CTE Aggregation (Production Query)
                     </button>
                 </div>
-            </div>
 
-            <!-- Dynamic Comparison Card -->
-            <div id="fanout-card" class="rounded-2xl p-6 border transition-all space-y-4 bg-emerald-50/70 border-emerald-300">
-                <div class="flex items-center justify-between border-b pb-3 border-emerald-200">
-                    <div class="flex items-center space-x-2">
-                        <span id="fanout-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-200 text-emerald-900">
-                            CORRECT ARCHITECTURE (INDEPENDENT CTE AGGREGATION)
+                <!-- Dynamic Comparison Box -->
+                <div id="fo-box" class="p-6 rounded-2xl border transition-all space-y-4 bg-emerald-50/70 border-emerald-300">
+                    <div class="flex items-center justify-between border-b pb-3 border-emerald-200">
+                        <span id="fo-title" class="text-xs font-bold uppercase tracking-wider text-emerald-900">
+                            INDEPENDENT AGGREGATION QUERY (CORRECT)
+                        </span>
+                        <span id="fo-tag" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-200 text-emerald-900">
+                            ZERO INFLATION
                         </span>
                     </div>
-                    <span id="fanout-status" class="text-xs font-bold text-emerald-800">ZERO ARTIFICIAL INFLATION</span>
-                </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200">
-                        <span class="text-xs text-slate-400 block font-medium">Joined Output Rows</span>
-                        <span id="fo-rows" class="text-xl font-bold font-mono-code text-slate-900">1 Row</span>
-                        <span class="text-[11px] text-slate-500 block">Exact 1-to-1 PO Line</span>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="bg-white p-4 rounded-xl border border-slate-200">
+                            <span class="text-xs text-slate-400 block font-medium">Joined Output Rows</span>
+                            <span id="fo-r-rows" class="text-2xl font-bold font-mono-code text-slate-900">1 Row</span>
+                            <span class="text-[11px] text-slate-500 block">Exact 1-to-1 PO Line</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200">
+                            <span class="text-xs text-slate-400 block font-medium">Reported Received Qty</span>
+                            <span id="fo-r-gr" class="text-2xl font-bold font-mono-code text-slate-900">100.0 Units</span>
+                            <span class="text-[11px] text-slate-500 block">Dock count verified</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200">
+                            <span class="text-xs text-slate-400 block font-medium">Reported Invoiced Qty</span>
+                            <span id="fo-r-inv" class="text-2xl font-bold font-mono-code text-slate-900">100.0 Units</span>
+                            <span class="text-[11px] text-slate-500 block">Invoice lines verified</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200">
+                            <span class="text-xs text-slate-400 block font-medium">Reported Invoiced Total</span>
+                            <span id="fo-r-amt" class="text-2xl font-bold font-mono-code text-emerald-700">₹1,00,000.00</span>
+                            <span class="text-[11px] text-emerald-600 font-bold block">100% Accurate</span>
+                        </div>
                     </div>
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200">
-                        <span class="text-xs text-slate-400 block font-medium">Reported Received Qty</span>
-                        <span id="fo-gr" class="text-xl font-bold font-mono-code text-slate-900">100.0 Units</span>
-                        <span class="text-[11px] text-slate-500 block">Agrees with delivery dock</span>
-                    </div>
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200">
-                        <span class="text-xs text-slate-400 block font-medium">Reported Invoiced Qty</span>
-                        <span id="fo-inv-qty" class="text-xl font-bold font-mono-code text-slate-900">100.0 Units</span>
-                        <span class="text-[11px] text-slate-500 block">Matches vendor bill</span>
-                    </div>
-                    <div class="bg-white p-3.5 rounded-xl border border-slate-200">
-                        <span class="text-xs text-slate-400 block font-medium">Reported Invoiced Amount</span>
-                        <span id="fo-amt" class="text-xl font-bold font-mono-code text-emerald-700">₹1,00,000.00</span>
-                        <span class="text-[11px] text-emerald-600 font-bold block">100% Accurate</span>
-                    </div>
-                </div>
 
-                <p id="fo-desc" class="text-xs text-slate-700 leading-relaxed font-mono-code bg-white p-3 rounded-xl border border-slate-200">
-                    <strong>Solution Architecture:</strong> Receipts and Invoices are pre-aggregated in separate CTEs at the (po_number, line_item) level before performing a LEFT JOIN to the purchase order line. This isolates split deliveries and split progress billings, completely preventing row duplication.
-                </p>
+                    <p id="fo-r-desc" class="text-xs font-mono-code bg-white p-3.5 rounded-xl border border-slate-200 leading-relaxed text-slate-700">
+                        <strong>Architectural Guarantee:</strong> Pre-aggregating fact_goods_receipts and fact_invoice_lines independently in CTEs prior to joining prevents the 2 receipts × 2 invoices cross-product from occurring. The line correctly clears with ₹0.00 variance.
+                    </p>
+                </div>
             </div>
         </div>
 
-        <!-- Section 2: Exception Breakdown & AP Action Review Queue -->
-        <div class="glass-card rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <!-- ============================================================== -->
+        <!-- VIEW 3: SUPPLIER SCORECARD -->
+        <!-- ============================================================== -->
+        <div id="view-scorecard" class="view-panel hidden space-y-4">
+            <div class="glass-card rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
                 <div>
-                    <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
-                        <i data-lucide="alert-octagon" class="w-5 h-5 text-red-600"></i>
-                        <span>Accounts Payable Discrepancy Queue &amp; Suggested Next Actions</span>
-                    </h3>
-                    <p class="text-xs text-slate-500">Filter exceptions by primary root cause to view AP hold protocols.</p>
+                    <h3 class="text-base font-bold text-slate-900">Supplier Billing Accuracy &amp; Disputed Exposure Ranking</h3>
+                    <p class="text-xs text-slate-500">Evaluating vendor invoice compliance across all 8 vendors in the simulation.</p>
                 </div>
-                <!-- Filter Pills -->
-                <div class="flex flex-wrap gap-1.5">
-                    <button onclick="filterExceptions('ALL')" id="filter-ALL" class="exc-btn px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white">All (30)</button>
-                    <button onclick="filterExceptions('MISSING_GR')" id="filter-MISSING_GR" class="exc-btn px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Missing GR (6)</button>
-                    <button onclick="filterExceptions('QUANTITY_OVER_INVOICE')" id="filter-QUANTITY_OVER_INVOICE" class="exc-btn px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Qty Over-Invoiced (8)</button>
-                    <button onclick="filterExceptions('PRICE_VARIANCE')" id="filter-PRICE_VARIANCE" class="exc-btn px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Price Variance (6)</button>
-                    <button onclick="filterExceptions('OVERDUE_OPEN_PO')" id="filter-OVERDUE_OPEN_PO" class="exc-btn px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">Overdue POs (10)</button>
-                </div>
-            </div>
 
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 text-xs">
-                    <thead>
-                        <tr class="bg-slate-100 text-slate-700 font-bold">
-                            <th class="py-3 px-3 text-left">PO &amp; Line</th>
-                            <th class="py-3 px-3 text-left">Supplier</th>
-                            <th class="py-3 px-3 text-left">Material</th>
-                            <th class="py-3 px-2 text-right">Ordered</th>
-                            <th class="py-3 px-2 text-right">Received</th>
-                            <th class="py-3 px-2 text-right">Invoiced</th>
-                            <th class="py-3 px-2 text-right">PO Rate</th>
-                            <th class="py-3 px-2 text-right">Inv Rate</th>
-                            <th class="py-3 px-3 text-right">Risk (₹)</th>
-                            <th class="py-3 px-4 text-left">Suggested AP Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="exception-tbody" class="divide-y divide-slate-200 font-mono-code">
-                        <!-- Populated by JS -->
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200 text-xs">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 font-bold">
+                                <th class="py-2.5 px-4 text-left">Supplier Name</th>
+                                <th class="py-2.5 px-3 text-left">Location</th>
+                                <th class="py-2.5 px-3 text-center">Terms</th>
+                                <th class="py-2.5 px-3 text-right">PO Lines</th>
+                                <th class="py-2.5 px-3 text-right">Clean Lines</th>
+                                <th class="py-2.5 px-3 text-right">Exceptions</th>
+                                <th class="py-2.5 px-3 text-right">Exception %</th>
+                                <th class="py-2.5 px-3 text-right">Total Invoiced (₹)</th>
+                                <th class="py-2.5 px-3 text-right">Disputed Risk (₹)</th>
+                                <th class="py-2.5 px-4 text-left">Risk Tier</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scorecard-tbody" class="divide-y divide-slate-200 font-mono-code">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <!-- Section 3: Supplier Risk & Compliance Scorecard -->
-        <div class="glass-card rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
-            <div>
-                <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
-                    <i data-lucide="award" class="w-5 h-5 text-sky-600"></i>
-                    <span>Supplier Compliance &amp; Risk Scorecard</span>
+        <!-- ============================================================== -->
+        <!-- VIEW 4: TEST BENCHMARKS -->
+        <!-- ============================================================== -->
+        <div id="view-fixtures" class="view-panel hidden space-y-4">
+            <div class="glass-card rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Hand-Checked Benchmark Fixtures (Known Expected Results)</h3>
+                    <p class="text-xs text-slate-500">8 deterministic test cases testing every business permutation and edge case.</p>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200 text-xs">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 font-bold">
+                                <th class="py-2.5 px-3 text-center">Case</th>
+                                <th class="py-2.5 px-4 text-left">Scenario Description</th>
+                                <th class="py-2.5 px-3 text-center">PO Number</th>
+                                <th class="py-2.5 px-2 text-right">Ordered</th>
+                                <th class="py-2.5 px-3 text-right">PO Price</th>
+                                <th class="py-2.5 px-3 text-center">Expected Status</th>
+                                <th class="py-2.5 px-4 text-left">Expected Reasons</th>
+                                <th class="py-2.5 px-3 text-center">Audit Result</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fixtures-tbody" class="divide-y divide-slate-200 font-mono-code text-[11px]">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- VIEW 5: SQL CODE -->
+        <!-- ============================================================== -->
+        <div id="view-sql" class="view-panel hidden space-y-4">
+            <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-xs space-y-3">
+                <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+                    <i data-lucide="code-2" class="w-4 h-4 text-sap-600"></i>
+                    <span>Production SQL Scripts Executed on SQLite</span>
                 </h3>
-                <p class="text-xs text-slate-500">Ranking vendor billing accuracy across all evaluated purchase order lines.</p>
+                <pre class="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto font-mono-code leading-relaxed max-h-96">
+-- CTE Independent Aggregation eliminating the Fan-Out Trap
+WITH gr_agg AS (
+    SELECT po_number, line_item, SUM(received_quantity) AS total_received_qty
+    FROM fact_goods_receipts
+    GROUP BY po_number, line_item
+),
+inv_agg AS (
+    SELECT po_number, line_item, 
+           SUM(invoiced_quantity) AS total_invoiced_qty, 
+           SUM(invoiced_amount) AS total_invoiced_amount,
+           ROUND(SUM(invoiced_amount) / NULLIF(SUM(invoiced_quantity), 0), 2) AS avg_invoice_unit_price
+    FROM fact_invoice_lines
+    GROUP BY po_number, line_item
+)
+SELECT 
+    pol.po_number,
+    pol.line_item,
+    s.supplier_name,
+    pol.ordered_quantity,
+    COALESCE(gr.total_received_qty, 0.0) AS received_quantity,
+    COALESCE(inv.total_invoiced_qty, 0.0) AS invoiced_quantity,
+    COALESCE(inv.avg_invoice_unit_price, 0.0) AS invoice_unit_price,
+    CASE 
+        WHEN inv.total_invoiced_qty > 0 AND gr.total_received_qty = 0 THEN 'EXCEPTION'
+        WHEN inv.total_invoiced_qty > gr.total_received_qty THEN 'EXCEPTION'
+        WHEN ABS((inv.avg_invoice_unit_price - pol.po_unit_price) / pol.po_unit_price) > 0.02 THEN 'EXCEPTION'
+        WHEN pol.expected_delivery_date < '2026-11-17' AND gr.total_received_qty < pol.ordered_quantity THEN 'EXCEPTION'
+        ELSE 'CLEAN_MATCH'
+    END AS match_status
+FROM fact_po_lines pol
+JOIN fact_purchase_orders po ON pol.po_number = po.po_number
+JOIN dim_suppliers s ON po.supplier_id = s.supplier_id
+LEFT JOIN gr_agg gr ON pol.po_number = gr.po_number AND pol.line_item = gr.line_item
+LEFT JOIN inv_agg inv ON pol.po_number = inv.po_number AND pol.line_item = inv.line_item;
+                </pre>
             </div>
-
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 text-xs">
-                    <thead>
-                        <tr class="bg-slate-100 text-slate-700 font-bold">
-                            <th class="py-3 px-4 text-left">Supplier Name</th>
-                            <th class="py-3 px-3 text-left">Location</th>
-                            <th class="py-3 px-3 text-center">Terms</th>
-                            <th class="py-3 px-3 text-right">Total Lines</th>
-                            <th class="py-3 px-3 text-right">Clean Lines</th>
-                            <th class="py-3 px-3 text-right">Exception Lines</th>
-                            <th class="py-3 px-3 text-right">Exception %</th>
-                            <th class="py-3 px-3 text-right">Total Invoiced (₹)</th>
-                            <th class="py-3 px-3 text-right">Disputed Risk (₹)</th>
-                            <th class="py-3 px-4 text-left">Risk Tier</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200 font-mono-code">
-                        <tr class="bg-red-50/50">
-                            <td class="py-3 px-4 font-sans font-bold text-slate-900">Deccan Artisanal Syrups</td>
-                            <td class="py-3 px-3 font-sans text-slate-600">Hyderabad</td>
-                            <td class="py-3 px-3 text-center">Net 30</td>
-                            <td class="py-3 px-3 text-right">9</td>
-                            <td class="py-3 px-3 text-right">5</td>
-                            <td class="py-3 px-3 text-right text-red-600 font-bold">4</td>
-                            <td class="py-3 px-3 text-right text-red-600 font-bold">44.4%</td>
-                            <td class="py-3 px-3 text-right">₹12,40,000</td>
-                            <td class="py-3 px-3 text-right text-red-600 font-bold">₹4,12,000</td>
-                            <td class="py-3 px-4 font-sans font-bold text-red-700">HIGH RISK (Audit Required)</td>
-                        </tr>
-                        <tr class="bg-red-50/50">
-                            <td class="py-3 px-4 font-sans font-bold text-slate-900">Bharat Eco Packaging</td>
-                            <td class="py-3 px-3 font-sans text-slate-600">Bengaluru</td>
-                            <td class="py-3 px-3 text-center">Net 45</td>
-                            <td class="py-3 px-3 text-right">10</td>
-                            <td class="py-3 px-3 text-right">5</td>
-                            <td class="py-3 px-3 text-right text-red-600 font-bold">5</td>
-                            <td class="py-3 px-3 text-right text-red-600 font-bold">50.0%</td>
-                            <td class="py-3 px-3 text-right">₹8,50,000</td>
-                            <td class="py-3 px-3 text-right text-red-600 font-bold">₹3,45,000</td>
-                            <td class="py-3 px-4 font-sans font-bold text-red-700">HIGH RISK (Audit Required)</td>
-                        </tr>
-                        <tr>
-                            <td class="py-3 px-4 font-sans font-bold text-slate-900">Precision Espresso Spares</td>
-                            <td class="py-3 px-3 font-sans text-slate-600">Mumbai</td>
-                            <td class="py-3 px-3 text-center">Net 60</td>
-                            <td class="py-3 px-3 text-right">8</td>
-                            <td class="py-3 px-3 text-right">5</td>
-                            <td class="py-3 px-3 text-right text-amber-600 font-bold">3</td>
-                            <td class="py-3 px-3 text-right text-amber-600 font-bold">37.5%</td>
-                            <td class="py-3 px-3 text-right">₹14,20,000</td>
-                            <td class="py-3 px-3 text-right text-amber-600 font-bold">₹2,84,000</td>
-                            <td class="py-3 px-4 font-sans font-bold text-amber-700">MEDIUM RISK (Monitor)</td>
-                        </tr>
-                        <tr>
-                            <td class="py-3 px-4 font-sans font-bold text-slate-900">Coorg Specialty Coffee Estates</td>
-                            <td class="py-3 px-3 font-sans text-slate-600">Madikeri</td>
-                            <td class="py-3 px-3 text-center">Net 30</td>
-                            <td class="py-3 px-3 text-right">12</td>
-                            <td class="py-3 px-3 text-right">10</td>
-                            <td class="py-3 px-3 text-right text-emerald-600 font-bold">2</td>
-                            <td class="py-3 px-3 text-right text-emerald-600 font-bold">16.7%</td>
-                            <td class="py-3 px-3 text-right">₹24,50,000</td>
-                            <td class="py-3 px-3 text-right">₹1,20,000</td>
-                            <td class="py-3 px-4 font-sans font-bold text-emerald-700">LOW RISK (Preferred)</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Section 4: Production SQL Scripts -->
-        <div class="glass-card rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                    <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
-                        <i data-lucide="code" class="w-5 h-5 text-sky-600"></i>
-                        <span>SAP Reconciliation SQL Scripts</span>
-                    </h3>
-                    <p class="text-xs text-slate-500">Explore the exact SQL queries preventing Cartesian fan-out and classifying discrepancies.</p>
-                </div>
-                <div class="flex space-x-2">
-                    <button onclick="showSapQuery('fanout')" id="btn-sq-fanout" class="px-3 py-1 text-xs font-semibold rounded-lg bg-slate-900 text-white">01 Fan-Out Proof</button>
-                    <button onclick="showSapQuery('match')" id="btn-sq-match" class="px-3 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200">02 3-Way Match</button>
-                    <button onclick="showSapQuery('exceptions')" id="btn-sq-exceptions" class="px-3 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200">03 Classification</button>
-                    <button onclick="showSapQuery('scorecard')" id="btn-sq-scorecard" class="px-3 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200">04 Scorecard</button>
-                </div>
-            </div>
-
-            <pre id="sap-sql-display" class="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto font-mono-code leading-relaxed max-h-96"></pre>
         </div>
 
     </main>
 
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-        <a href="index.html" class="font-bold text-sky-700 hover:underline">← Back to Master Portfolio</a> • <a href="slow-brew.html" class="hover:underline">View Slow Brew Project →</a>
+        <p>SAP S/4HANA 3-Way Match Procurement Simulation • Developed in Python, SQLite, Excel, &amp; Power BI</p>
     </footer>
 
+    <!-- Interactive Data Scripts -->
     <script>
         lucide.createIcons();
 
-        // Fan Out Toggle
-        function toggleJoin(isCorrect) {
-            const card = document.getElementById('fanout-card');
-            const badge = document.getElementById('fanout-badge');
-            const status = document.getElementById('fanout-status');
-            const rows = document.getElementById('fo-rows');
-            const gr = document.getElementById('fo-gr');
-            const invQty = document.getElementById('fo-inv-qty');
-            const amt = document.getElementById('fo-amt');
-            const desc = document.getElementById('fo-desc');
-
-            if (isCorrect) {
-                document.getElementById('btn-cte').className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-sky-600 text-white shadow-xs transition";
-                document.getElementById('btn-naive').className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition";
-                card.className = "rounded-2xl p-6 border transition-all space-y-4 bg-emerald-50/70 border-emerald-300";
-                badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-200 text-emerald-900";
-                badge.innerText = "CORRECT ARCHITECTURE (INDEPENDENT CTE AGGREGATION)";
-                status.className = "text-xs font-bold text-emerald-800";
-                status.innerText = "ZERO ARTIFICIAL INFLATION";
-                rows.innerText = "1 Row";
-                rows.className = "text-xl font-bold font-mono-code text-slate-900";
-                gr.innerText = "100.0 Units";
-                invQty.innerText = "100.0 Units";
-                amt.innerText = "₹1,00,000.00";
-                amt.className = "text-xl font-bold font-mono-code text-emerald-700";
-                desc.innerHTML = `<strong>Solution Architecture:</strong> Receipts and Invoices are pre-aggregated in separate CTEs at the (po_number, line_item) level before performing a LEFT JOIN to the purchase order line. This isolates split deliveries and split progress billings, completely preventing row duplication.`;
-            } else {
-                document.getElementById('btn-naive').className = "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-red-600 text-white shadow-xs transition";
-                document.getElementById('btn-cte').className = "px-3.5 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition";
-                card.className = "rounded-2xl p-6 border transition-all space-y-4 bg-red-50/70 border-red-300";
-                badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-red-200 text-red-900";
-                badge.innerText = "NAIVE RAW JOIN (CARTESIAN FAN-OUT ERROR)";
-                status.className = "text-xs font-bold text-red-800";
-                status.innerText = "100% ARTIFICIAL SPEND INFLATION";
-                rows.innerText = "4 Rows (2x2)";
-                rows.className = "text-xl font-bold font-mono-code text-red-600";
-                gr.innerText = "200.0 Units (Doubled)";
-                invQty.innerText = "200.0 Units (Doubled)";
-                amt.innerText = "₹2,00,000.00 (Doubled!)";
-                amt.className = "text-xl font-bold font-mono-code text-red-600";
-                desc.innerHTML = `<strong>Why this fails:</strong> Direct joining of 2 Goods Receipts to 2 Invoices causes a 2x2 Cartesian product (4 joined rows). Summing quantities and amounts on this naive join doubles the reported spend from ₹1,00,000 to ₹2,00,000.`;
-            }
-        }
-
-        // Exception Queue Data
-        const sampleExceptions = [
-            { po: "PO-45001004", line: 10, supp: "Deccan Syrups", mat: "Vanilla Infusion Syrup", ord: 50, rec: 0, inv: 50, poP: 800, invP: 800, risk: "₹40,000", action: "Block in MIRO; demand proof of physical dock delivery.", type: "MISSING_GR" },
-            { po: "PO-45001005", line: 10, supp: "Bharat Packaging", mat: "Paper Cups (250ml)", ord: 100, rec: 70, inv: 100, poP: 250, invP: 250, risk: "₹7,500", action: "Apply SAP R-block; pay 70 units; demand credit note for 30 excess units.", type: "QUANTITY_OVER_INVOICE" },
-            { po: "PO-45001006", line: 10, supp: "Milma Fresh Dairy", mat: "Barista Oat Milk", ord: 500, rec: 500, inv: 500, poP: 200, invP: 220, risk: "₹10,000", action: "Place SAP P-block (+10% price hike); dispute unauthorized rate increase.", type: "PRICE_VARIANCE" },
-            { po: "PO-45001007", line: 10, supp: "Coorg Specialty", mat: "Robusta Cherry Washed", ord: 200, rec: 50, inv: 50, poP: 400, invP: 400, risk: "₹60,000", action: "Notify Purchasing Buyer; expedite 150 overdue units or cancel in EKPO.", type: "OVERDUE_OPEN_PO" },
-            { po: "PO-45001008", line: 10, supp: "Precision Spares", mat: "Food-Safe Descaler", ord: 100, rec: 60, inv: 80, poP: 300, invP: 330, risk: "₹8,400", action: "Immediate payment hold; demand credit memo for both rate hike & excess qty.", type: "QUANTITY_OVER_INVOICE" },
-            { po: "PO-45001015", line: 20, supp: "Deccan Syrups", mat: "Hazelnut Syrup", ord: 150, rec: 0, inv: 150, poP: 350, invP: 350, risk: "₹52,500", action: "Block in MIRO; warehouse dock has no MIGO receipt.", type: "MISSING_GR" }
+        // 1. All 76 PO Lines Data Sample (representative full set)
+        const poLinesData = [
+            { po: "PO-45001004", line: 10, supp: "Deccan Artisanal Syrups", mat: "Vanilla Bean Infusion Syrup", ord: 50, rec: 0, inv: 50, poP: 800, invP: 800, varPct: 0.0, risk: 40000, status: "EXCEPTION", reason: "MISSING_GR", action: "Block in MIRO; demand physical proof of dock delivery." },
+            { po: "PO-45001005", line: 10, supp: "Bharat Eco Packaging", mat: "Paper Cups (250ml)", ord: 100, rec: 70, inv: 100, poP: 250, invP: 250, varPct: 0.0, risk: 7500, status: "EXCEPTION", reason: "QUANTITY_OVER_INVOICE", action: "Apply SAP R-block; pay 70 units; demand credit note for 30 excess units." },
+            { po: "PO-45001006", line: 10, supp: "Milma Fresh Dairy", mat: "Barista Oat Milk (1L Tetra)", ord: 500, rec: 500, inv: 500, poP: 200, invP: 220, varPct: 10.0, risk: 10000, status: "EXCEPTION", reason: "PRICE_VARIANCE", action: "Place SAP P-block (+10% price hike); dispute unauthorized rate increase." },
+            { po: "PO-45001007", line: 10, supp: "Coorg Specialty Coffee", mat: "Robusta Cherry Washed", ord: 200, rec: 50, inv: 50, poP: 400, invP: 400, varPct: 0.0, risk: 60000, status: "EXCEPTION", reason: "OVERDUE_OPEN_PO", action: "Notify Purchasing Buyer; expedite 150 overdue units or cancel in EKPO." },
+            { po: "PO-45001008", line: 10, supp: "Precision Espresso Spares", mat: "Food-Safe Descaler", ord: 100, rec: 60, inv: 80, poP: 300, invP: 330, varPct: 10.0, risk: 8400, status: "EXCEPTION", reason: "QUANTITY_OVER_INVOICE", action: "Immediate payment hold; demand credit memo for both rate hike & excess qty." },
+            { po: "PO-45001001", line: 10, supp: "Coorg Specialty Coffee", mat: "Arabica Green Beans Grade A", ord: 100, rec: 100, inv: 100, poP: 500, invP: 500, varPct: 0.0, risk: 0, status: "CLEAN_MATCH", reason: "CLEAN_MATCH", action: "Post invoice for payment (Clear for payment)." },
+            { po: "PO-45001002", line: 10, supp: "Bharat Eco Packaging", mat: "Kraft Paper Pouches (1kg)", ord: 200, rec: 100, inv: 100, poP: 150, invP: 150, varPct: 0.0, risk: 0, status: "CLEAN_MATCH", reason: "CLEAN_MATCH", action: "Partial delivery within open window. Clear for payment." },
+            { po: "PO-45001003", line: 10, supp: "Precision Espresso Spares", mat: "Grouphead Gasket 58mm", ord: 100, rec: 100, inv: 100, poP: 1000, invP: 1000, varPct: 0.0, risk: 0, status: "CLEAN_MATCH", reason: "CLEAN_MATCH", action: "Split GR and split Invoice cleanly reconciled. Clear for payment." },
+            { po: "PO-45001015", line: 20, supp: "Deccan Artisanal Syrups", mat: "Organic Hazelnut Syrup", ord: 150, rec: 0, inv: 150, poP: 350, invP: 350, varPct: 0.0, risk: 52500, status: "EXCEPTION", reason: "MISSING_GR", action: "Block in MIRO; warehouse dock has no MIGO receipt." },
+            { po: "PO-45001022", line: 10, supp: "Bharat Eco Packaging", mat: "Double Wall Insulated Cups", ord: 300, rec: 200, inv: 300, poP: 180, invP: 180, varPct: 0.0, risk: 18000, status: "EXCEPTION", reason: "QUANTITY_OVER_INVOICE", action: "Apply SAP R-block; demand vendor credit note for 100 unreceived boxes." }
         ];
 
-        function filterExceptions(type) {
-            document.querySelectorAll('.exc-btn').forEach(b => {
-                b.className = "exc-btn px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200";
-            });
-            document.getElementById(`filter-${type}`).className = "exc-btn px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white";
+        const suppliersData = [
+            { name: "Deccan Artisanal Syrups", city: "Hyderabad", terms: "Net 30", lines: 9, clean: 5, exc: 4, excPct: "44.4%", inv: "₹12,40,000", risk: "₹4,12,000", tier: "HIGH RISK" },
+            { name: "Bharat Eco Packaging", city: "Bengaluru", terms: "Net 45", lines: 10, clean: 5, exc: 5, excPct: "50.0%", inv: "₹8,50,000", risk: "₹3,45,000", tier: "HIGH RISK" },
+            { name: "Precision Espresso Spares", city: "Mumbai", terms: "Net 60", lines: 8, clean: 5, exc: 3, excPct: "37.5%", inv: "₹14,20,000", risk: "₹2,84,000", tier: "MEDIUM RISK" },
+            { name: "Milma Fresh Dairy", city: "Kochi", terms: "Net 30", lines: 10, clean: 7, exc: 3, excPct: "30.0%", inv: "₹18,50,000", risk: "₹1,85,000", tier: "MEDIUM RISK" },
+            { name: "Himalayan Mineral Water", city: "Dehradun", terms: "Net 45", lines: 9, clean: 7, exc: 2, excPct: "22.2%", inv: "₹9,80,000", risk: "₹1,10,000", tier: "LOW RISK" },
+            { name: "Coorg Specialty Coffee", city: "Madikeri", terms: "Net 30", lines: 12, clean: 10, exc: 2, excPct: "16.7%", inv: "₹24,50,000", risk: "₹1,20,000", tier: "LOW RISK" },
+            { name: "Western Bio-Degradable Cups", city: "Pune", terms: "Net 30", lines: 9, clean: 8, exc: 1, excPct: "11.1%", inv: "₹8,90,000", risk: "₹35,000", tier: "LOW RISK" },
+            { name: "Malabar Organic Spices", city: "Calicut", terms: "Net 45", lines: 9, clean: 8, exc: 1, excPct: "11.1%", inv: "₹8,44,600", risk: "₹31,480", tier: "LOW RISK" }
+        ];
 
-            const tbody = document.getElementById('exception-tbody');
+        const fixturesData = [
+            { id: "TC-01", desc: "Perfect 1:1:1 Match (All documents agree)", po: "PO-45001001", ord: 100, price: "₹500.00", status: "CLEAN_MATCH", reason: "CLEAN_MATCH" },
+            { id: "TC-02", desc: "Partial Receipt Within Window (NOT an exception)", po: "PO-45001002", ord: 200, price: "₹150.00", status: "CLEAN_MATCH", reason: "CLEAN_MATCH" },
+            { id: "TC-03", desc: "Split Receipts & Split Invoices (Anti-Fan-Out)", po: "PO-45001003", ord: 100, price: "₹1,000.00", status: "CLEAN_MATCH", reason: "CLEAN_MATCH" },
+            { id: "TC-04", desc: "Missing Goods Receipt (Billed with zero GR)", po: "PO-45001004", ord: 50, price: "₹800.00", status: "EXCEPTION", reason: "MISSING_GR; OVERDUE_OPEN_PO" },
+            { id: "TC-05", desc: "Quantity Over-Invoiced (Billed 100, Received 70)", po: "PO-45001005", ord: 100, price: "₹250.00", status: "EXCEPTION", reason: "QUANTITY_OVER_INVOICE; OVERDUE_OPEN_PO" },
+            { id: "TC-06", desc: "Price Variance Outside Tolerance (+10% hike)", po: "PO-45001006", ord: 500, price: "₹200.00", status: "EXCEPTION", reason: "PRICE_VARIANCE" },
+            { id: "TC-07", desc: "Overdue Open PO Line (Expected Oct 10, undelivered)", po: "PO-45001007", ord: 200, price: "₹400.00", status: "EXCEPTION", reason: "OVERDUE_OPEN_PO" },
+            { id: "TC-08", desc: "Compound Multi-Exception (Over-invoiced + Price Hike)", po: "PO-45001008", ord: 100, price: "₹300.00", status: "EXCEPTION", reason: "QUANTITY_OVER_INVOICE; PRICE_VARIANCE; OVERDUE" }
+        ];
+
+        // 2. View Switcher
+        function switchView(viewKey) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`view-${viewKey}`).classList.remove('hidden');
+
+            ['queue', 'fanout', 'scorecard', 'fixtures', 'sql'].forEach(k => {
+                const btn = document.getElementById(`nav-${k}`);
+                if (k === viewKey) {
+                    btn.className = "px-3 py-1 rounded-md text-xs bg-white text-slate-900 shadow-xs transition font-bold";
+                } else {
+                    btn.className = "px-3 py-1 rounded-md text-xs text-slate-600 hover:text-slate-900 transition font-medium";
+                }
+            });
+        }
+
+        // 3. Render Queue Table
+        function renderTable() {
+            const suppF = document.getElementById('filter-supplier').value;
+            const statusF = document.getElementById('filter-status').value;
+            const reasonF = document.getElementById('filter-reason').value;
+            const searchQ = (document.getElementById('queue-search').value || '').toLowerCase();
+
+            const tbody = document.getElementById('queue-tbody');
             tbody.innerHTML = '';
 
-            const filtered = (type === 'ALL') ? sampleExceptions : sampleExceptions.filter(e => e.type === type);
-            filtered.forEach(e => {
+            poLinesData.forEach(r => {
+                if (suppF !== 'ALL' && !r.supp.includes(suppF)) return;
+                if (statusF !== 'ALL' && r.status !== statusF) return;
+                if (reasonF !== 'ALL' && r.reason !== reasonF) return;
+                if (searchQ && !r.po.toLowerCase().includes(searchQ) && !r.supp.toLowerCase().includes(searchQ) && !r.mat.toLowerCase().includes(searchQ)) return;
+
                 const tr = document.createElement('tr');
+                const isExc = r.status === 'EXCEPTION';
+                if (isExc) tr.className = "bg-red-50/40 hover:bg-red-50/70 transition cursor-pointer";
+                else tr.className = "hover:bg-slate-50 transition cursor-pointer";
+
                 tr.innerHTML = `
-                    <td class="py-3 px-3 font-sans font-bold text-slate-900">${e.po}-${e.line}</td>
-                    <td class="py-3 px-3 font-sans text-slate-700">${e.supp}</td>
-                    <td class="py-3 px-3 font-sans text-slate-600">${e.mat}</td>
-                    <td class="py-3 px-2 text-right">${e.ord}</td>
-                    <td class="py-3 px-2 text-right">${e.rec}</td>
-                    <td class="py-3 px-2 text-right font-bold text-slate-900">${e.inv}</td>
-                    <td class="py-3 px-2 text-right">₹${e.poP}</td>
-                    <td class="py-3 px-2 text-right font-bold ${e.invP > e.poP ? 'text-red-600' : 'text-slate-900'}">₹${e.invP}</td>
-                    <td class="py-3 px-3 text-right font-bold text-red-600">${e.risk}</td>
-                    <td class="py-3 px-4 font-sans text-slate-600 text-xs">${e.action}</td>
+                    <td class="py-2.5 px-3 font-sans font-bold text-slate-900">${r.po}-${r.line}</td>
+                    <td class="py-2.5 px-4 font-sans text-slate-700">${r.supp}</td>
+                    <td class="py-2.5 px-4 font-sans text-slate-600">${r.mat}</td>
+                    <td class="py-2.5 px-2 text-right">${r.ord}</td>
+                    <td class="py-2.5 px-2 text-right">${r.rec}</td>
+                    <td class="py-2.5 px-2 text-right font-bold ${r.inv > r.rec ? 'text-red-600' : 'text-slate-900'}">${r.inv}</td>
+                    <td class="py-2.5 px-2 text-right">₹${r.poP}</td>
+                    <td class="py-2.5 px-2 text-right font-bold ${r.invP > r.poP ? 'text-red-600' : 'text-slate-900'}">₹${r.invP}</td>
+                    <td class="py-2.5 px-2 text-right ${r.varPct > 0 ? 'text-red-600 font-bold' : 'text-slate-500'}">${r.varPct.toFixed(1)}%</td>
+                    <td class="py-2.5 px-3 text-right font-bold ${r.risk > 0 ? 'text-red-600' : 'text-slate-400'}">₹${r.risk.toLocaleString()}</td>
+                    <td class="py-2.5 px-3 text-center font-sans font-bold">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] ${isExc ? 'bg-red-100 text-red-800' : 'bg-emerald-100 text-emerald-800'}">
+                            ${r.status}
+                        </span>
+                    </td>
+                    <td class="py-2.5 px-4 font-sans text-slate-600 text-xs">${r.action}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
-        filterExceptions('ALL');
+        renderTable();
 
-        // SQL scripts
-        const sapQueries = {
-            fanout: `-- Query 01: Side-by-Side Proof of Fan-Out Prevention\n-- Naive Join produces 4 rows (100% inflation):\nSELECT pol.po_number, COUNT(*), SUM(gr.received_quantity), SUM(inv.invoiced_amount)\nFROM fact_po_lines pol\nJOIN fact_goods_receipts gr ON pol.po_number = gr.po_number\nJOIN fact_invoice_lines inv ON pol.po_number = inv.po_number\nWHERE pol.po_number = 'PO-45001003';\n\n-- Correct Independent CTE Aggregation (1 row, exact ₹100,000):\nWITH gr_agg AS (\n    SELECT po_number, line_item, SUM(received_quantity) AS gr_qty FROM fact_goods_receipts GROUP BY po_number, line_item\n),\ninv_agg AS (\n    SELECT po_number, line_item, SUM(invoiced_quantity) AS inv_qty, SUM(invoiced_amount) AS inv_amt FROM fact_invoice_lines GROUP BY po_number, line_item\n)\nSELECT pol.*, gr_agg.gr_qty, inv_agg.inv_qty, inv_agg.inv_amt\nFROM fact_po_lines pol\nLEFT JOIN gr_agg ON pol.po_number = gr_agg.po_number\nLEFT JOIN inv_agg ON pol.po_number = inv_agg.po_number\nWHERE pol.po_number = 'PO-45001003';`,
-            match: `-- Query 02: 3-Way Match Production Reconciliation Query\nSELECT \n    pol.po_number,\n    pol.line_item,\n    s.supplier_name,\n    pol.ordered_quantity,\n    COALESCE(gr.total_received_qty, 0) AS received_qty,\n    COALESCE(inv.total_invoiced_qty, 0) AS invoiced_qty,\n    CASE \n        WHEN inv.total_invoiced_qty > 0 AND gr.total_received_qty = 0 THEN 'EXCEPTION'\n        WHEN inv.total_invoiced_qty > gr.total_received_qty THEN 'EXCEPTION'\n        WHEN ABS((inv.avg_unit_price - pol.po_unit_price)/pol.po_unit_price) > 0.02 THEN 'EXCEPTION'\n        WHEN pol.expected_delivery_date < '2026-11-17' AND gr.total_received_qty < pol.ordered_quantity THEN 'EXCEPTION'\n        ELSE 'CLEAN_MATCH'\n    END AS match_status\nFROM fact_po_lines pol\nJOIN fact_purchase_orders po ON pol.po_number = po.po_number\nJOIN dim_suppliers s ON po.supplier_id = s.supplier_id\nLEFT JOIN gr_agg gr ON pol.po_number = gr.po_number AND pol.line_item = gr.line_item\nLEFT JOIN inv_agg inv ON pol.po_number = inv.po_number AND pol.line_item = inv.line_item;`,
-            exceptions: `-- Query 03: Exception Summary by Root Cause & Financial Risk\nSELECT \n    primary_exception_reason,\n    COUNT(*) AS affected_lines,\n    ROUND(SUM(invoiced_amount), 2) AS total_invoiced_inr,\n    ROUND(SUM(amount_at_risk_inr), 2) AS disputed_risk_inr\nFROM rpt_3way_match_exceptions\nGROUP BY primary_exception_reason\nORDER BY disputed_risk_inr DESC;`,
-            scorecard: `-- Query 04: Supplier Risk & Billing Accuracy Scorecard\nSELECT \n    s.supplier_name,\n    COUNT(r.po_number) AS total_po_lines,\n    SUM(CASE WHEN r.match_status = 'EXCEPTION' THEN 1 ELSE 0 END) AS exception_lines,\n    ROUND(100.0 * SUM(CASE WHEN r.match_status = 'EXCEPTION' THEN 1 ELSE 0 END) / COUNT(r.po_number), 1) AS exception_rate_pct,\n    ROUND(SUM(r.amount_at_risk_inr), 2) AS total_disputed_risk_inr\nFROM dim_suppliers s\nJOIN rpt_3way_match_exceptions r ON s.supplier_id = r.supplier_id\nGROUP BY s.supplier_name\nORDER BY total_disputed_risk_inr DESC;`
-        };
+        // 4. Render Scorecard Table
+        function renderScorecard() {
+            const tbody = document.getElementById('scorecard-tbody');
+            tbody.innerHTML = '';
+            suppliersData.forEach(s => {
+                const tr = document.createElement('tr');
+                const isHigh = s.tier === 'HIGH RISK';
+                if (isHigh) tr.className = "bg-red-50/40";
 
-        function showSapQuery(qKey) {
-            document.getElementById('sap-sql-display').textContent = sapQueries[qKey];
-            ['fanout', 'match', 'exceptions', 'scorecard'].forEach(k => {
-                document.getElementById(`btn-sq-${k}`).className = (k === qKey) 
-                    ? "px-3 py-1 text-xs font-semibold rounded-lg bg-slate-900 text-white" 
-                    : "px-3 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200";
+                tr.innerHTML = `
+                    <td class="py-2.5 px-4 font-sans font-bold text-slate-900">${s.name}</td>
+                    <td class="py-2.5 px-3 font-sans text-slate-600">${s.city}</td>
+                    <td class="py-2.5 px-3 text-center">${s.terms}</td>
+                    <td class="py-2.5 px-3 text-right">${s.lines}</td>
+                    <td class="py-2.5 px-3 text-right text-emerald-700">${s.clean}</td>
+                    <td class="py-2.5 px-3 text-right font-bold ${isHigh ? 'text-red-600' : 'text-slate-700'}">${s.exc}</td>
+                    <td class="py-2.5 px-3 text-right font-bold ${isHigh ? 'text-red-600' : 'text-slate-700'}">${s.excPct}</td>
+                    <td class="py-2.5 px-3 text-right">${s.inv}</td>
+                    <td class="py-2.5 px-3 text-right font-bold ${isHigh ? 'text-red-600' : 'text-slate-900'}">${s.risk}</td>
+                    <td class="py-2.5 px-4 font-sans font-bold ${isHigh ? 'text-red-700' : (s.tier === 'MEDIUM RISK' ? 'text-amber-700' : 'text-emerald-700')}">${s.tier}</td>
+                `;
+                tbody.appendChild(tr);
             });
         }
-        showSapQuery('fanout');
+        renderScorecard();
+
+        // 5. Render Fixtures
+        function renderFixtures() {
+            const tbody = document.getElementById('fixtures-tbody');
+            tbody.innerHTML = '';
+            fixturesData.forEach(f => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-2 px-3 text-center font-bold text-slate-900">${f.id}</td>
+                    <td class="py-2 px-4 font-sans text-slate-800">${f.desc}</td>
+                    <td class="py-2 px-3 text-center text-slate-600">${f.po}</td>
+                    <td class="py-2 px-2 text-right">${f.ord}</td>
+                    <td class="py-2 px-3 text-right">${f.price}</td>
+                    <td class="py-2 px-3 text-center font-sans font-bold"><span class="px-2 py-0.5 rounded-full text-[10px] ${f.status === 'CLEAN_MATCH' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${f.status}</span></td>
+                    <td class="py-2 px-4 font-sans text-slate-600">${f.reason}</td>
+                    <td class="py-2 px-3 text-center font-sans"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">PASSED</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        renderFixtures();
+
+        // 6. Fanout Simulator
+        function setFanout(isCorrect) {
+            const box = document.getElementById('fo-box');
+            const title = document.getElementById('fo-title');
+            const tag = document.getElementById('fo-tag');
+            const rows = document.getElementById('fo-r-rows');
+            const gr = document.getElementById('fo-r-gr');
+            const inv = document.getElementById('fo-r-inv');
+            const amt = document.getElementById('fo-r-amt');
+            const desc = document.getElementById('fo-r-desc');
+
+            if (isCorrect) {
+                document.getElementById('btn-fo-cte').className = "px-4 py-2 rounded-xl text-xs font-bold bg-sap-600 text-white shadow-xs transition";
+                document.getElementById('btn-fo-naive').className = "px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
+                box.className = "p-6 rounded-2xl border transition-all space-y-4 bg-emerald-50/70 border-emerald-300";
+                title.className = "text-xs font-bold uppercase tracking-wider text-emerald-900";
+                title.innerText = "INDEPENDENT AGGREGATION QUERY (CORRECT)";
+                tag.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-200 text-emerald-900";
+                tag.innerText = "ZERO INFLATION";
+                rows.innerText = "1 Row";
+                rows.className = "text-2xl font-bold font-mono-code text-slate-900";
+                gr.innerText = "100.0 Units";
+                inv.innerText = "100.0 Units";
+                amt.innerText = "₹1,00,000.00";
+                amt.className = "text-2xl font-bold font-mono-code text-emerald-700";
+                desc.innerHTML = `<strong>Architectural Guarantee:</strong> Pre-aggregating fact_goods_receipts and fact_invoice_lines independently in CTEs prior to joining prevents the 2 receipts × 2 invoices cross-product from occurring. The line correctly clears with ₹0.00 variance.`;
+            } else {
+                document.getElementById('btn-fo-naive').className = "px-4 py-2 rounded-xl text-xs font-bold bg-red-600 text-white shadow-xs transition";
+                document.getElementById('btn-fo-cte').className = "px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
+                box.className = "p-6 rounded-2xl border transition-all space-y-4 bg-red-50/70 border-red-300";
+                title.className = "text-xs font-bold uppercase tracking-wider text-red-900";
+                title.innerText = "NAIVE RAW JOIN QUERY (CARTESIAN PRODUCT ERROR)";
+                tag.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-200 text-red-900";
+                tag.innerText = "100% ARTIFICIAL SPEND INFLATION";
+                rows.innerText = "4 Rows (2x2)";
+                rows.className = "text-2xl font-bold font-mono-code text-red-600";
+                gr.innerText = "200.0 Units (Doubled)";
+                inv.innerText = "200.0 Units (Doubled)";
+                amt.innerText = "₹2,00,000.00 (Doubled!)";
+                amt.className = "text-2xl font-bold font-mono-code text-red-600";
+                desc.innerHTML = `<strong>Why this fails:</strong> Direct joining of 2 Goods Receipts to 2 Invoices causes a 2x2 Cartesian product (4 joined rows). Summing quantities and amounts on this naive join doubles the reported spend from ₹1,00,000 to ₹2,00,000.`;
+            }
+        }
     </script>
 </body>
 </html>

@@ -3,11 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Slow Brew Coffee — Sales & Delivery Channel Analytics</title>
+    <title>Slow Brew Coffee — Sales & Delivery Channel Analytics Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        amber: { 500: '#D97706', 600: '#B45309', 700: '#92400E' }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         .font-mono-code { font-family: 'JetBrains Mono', monospace; }
         .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); }
@@ -15,412 +30,659 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col font-sans">
 
-    <!-- Header -->
-    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
+    <!-- Top App Navigation -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <a href="index.html" class="p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition" title="Back to Portfolio">
-                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
-                </a>
-                <div class="h-6 w-px bg-slate-200"></div>
+                <div class="w-10 h-10 rounded-xl bg-amber-600 flex items-center justify-center text-white shadow-md shadow-amber-600/20 font-bold">
+                    <i data-lucide="coffee" class="w-5 h-5"></i>
+                </div>
                 <div>
-                    <h1 class="text-sm font-bold text-slate-900">Slow Brew Coffee: Channel Analytics</h1>
-                    <p class="text-xs text-amber-700 font-medium">In-Store POS vs. Zomato Online Delivery</p>
+                    <h1 class="text-base font-bold text-slate-900 leading-tight">Slow Brew Coffee — Sales &amp; Delivery BI</h1>
+                    <p class="text-xs text-slate-500 font-medium">90-Day Operational Multi-Channel Dashboard (In-Store POS vs. Zomato)</p>
                 </div>
             </div>
             <div class="flex items-center space-x-3">
-                <a href="downloads/Slow_Brew_Sales_Reconciliation.xlsx" class="inline-flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition">
+                <a href="reports/Slow_Brew_Sales_Reconciliation.xlsx" download class="inline-flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition">
                     <i data-lucide="download" class="w-4 h-4"></i>
-                    <span>Download Excel Workbook (.xlsx)</span>
+                    <span>Export Excel (.xlsx)</span>
                 </a>
-                <a href="https://github.com/veopro9892-web/data-analytics-portfolio/tree/main/slow-brew-sales-delivery" target="_blank" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition" title="View Source on GitHub">
+                <a href="https://github.com/veopro9892-web/data-analytics-portfolio/tree/main/slow-brew-sales-delivery" target="_blank" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition" title="GitHub Code">
                     <i data-lucide="github" class="w-5 h-5"></i>
                 </a>
             </div>
         </div>
+
+        <!-- Global Filters Sub-Bar -->
+        <div class="bg-slate-100/90 border-t border-slate-200/80 px-4 sm:px-6 lg:px-8 py-2.5">
+            <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex flex-wrap items-center gap-3">
+                    <span class="font-bold text-slate-600 flex items-center gap-1.5">
+                        <i data-lucide="filter" class="w-3.5 h-3.5 text-slate-500"></i>
+                        <span>Filters:</span>
+                    </span>
+
+                    <!-- Channel Filter -->
+                    <select id="filter-channel" onchange="applyFilters()" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-amber-500">
+                        <option value="ALL">All Sales Channels</option>
+                        <option value="POS">In-Store POS Only</option>
+                        <option value="ZOM">Zomato Delivery Only</option>
+                    </select>
+
+                    <!-- Category Filter -->
+                    <select id="filter-category" onchange="applyFilters()" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-amber-500">
+                        <option value="ALL">All Menu Categories</option>
+                        <option value="Coffee">Coffee</option>
+                        <option value="Bakery">Bakery</option>
+                        <option value="Food">Food / Toast</option>
+                        <option value="Specialty">Specialty / Drinks</option>
+                    </select>
+
+                    <!-- Time Slot Filter -->
+                    <select id="filter-slot" onchange="applyFilters()" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-amber-500">
+                        <option value="ALL">All Dayparts (08:00 - 23:00)</option>
+                        <option value="morning">Morning Rush (08:00 - 11:59)</option>
+                        <option value="afternoon">Afternoon Slump (12:00 - 15:59)</option>
+                        <option value="evening">Evening Social (16:00 - 19:59)</option>
+                        <option value="night">Night Chill (20:00 - 23:00)</option>
+                    </select>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <div class="flex items-center space-x-1 bg-slate-200/80 p-0.5 rounded-lg font-semibold">
+                    <button onclick="switchView('overview')" id="nav-overview" class="px-3 py-1 rounded-md text-xs bg-white text-slate-900 shadow-xs transition">Dashboard</button>
+                    <button onclick="switchView('menu')" id="nav-menu" class="px-3 py-1 rounded-md text-xs text-slate-600 hover:text-slate-900 transition">Menu Catalog</button>
+                    <button onclick="switchView('promo')" id="nav-promo" class="px-3 py-1 rounded-md text-xs text-slate-600 hover:text-slate-900 transition">Promo Simulator</button>
+                    <button onclick="switchView('recon')" id="nav-recon" class="px-3 py-1 rounded-md text-xs text-slate-600 hover:text-slate-900 transition">Reconciliation</button>
+                    <button onclick="switchView('sql')" id="nav-sql" class="px-3 py-1 rounded-md text-xs text-slate-600 hover:text-slate-900 transition">SQL Queries</button>
+                </div>
+            </div>
+        </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- Banner Block -->
-        <div class="bg-gradient-to-r from-amber-900 via-amber-800 to-slate-900 text-white rounded-3xl p-8 sm:p-10 shadow-lg relative overflow-hidden">
-            <div class="max-w-3xl space-y-3 relative z-10">
-                <span class="px-3 py-1 rounded-md text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">
-                    Retail &amp; Marketplace Strategy
-                </span>
-                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">
-                    Which menu items and time slots should Slow Brew promote on Zomato?
-                </h2>
-                <p class="text-amber-100/90 text-sm sm:text-base leading-relaxed">
-                    Evaluated 90 days of transactions (8,700+ in-store POS tickets and 6,000+ Zomato orders). Built a clean star schema in SQLite, automated reconciliation in Excel, and identified high-margin opportunities to bridge the gap between counter footfall and delivery sales.
-                </p>
+        <!-- Top Live KPI Ribbon -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+            <div class="glass-card rounded-xl p-3.5 border border-slate-200 shadow-xs">
+                <span class="text-[11px] text-slate-500 font-medium block">Net Sales</span>
+                <span id="kpi-net-sales" class="text-lg font-bold text-slate-900 font-mono-code block mt-0.5">₹50,34,510</span>
+                <span class="text-[10px] text-emerald-600 font-medium">After discounts &amp; refunds</span>
+            </div>
+            <div class="glass-card rounded-xl p-3.5 border border-slate-200 shadow-xs">
+                <span class="text-[11px] text-slate-500 font-medium block">Completed Orders</span>
+                <span id="kpi-orders" class="text-lg font-bold text-slate-900 font-mono-code block mt-0.5">7,613</span>
+                <span class="text-[10px] text-slate-400">Total tickets fulfilled</span>
+            </div>
+            <div class="glass-card rounded-xl p-3.5 border border-slate-200 shadow-xs">
+                <span class="text-[11px] text-slate-500 font-medium block">Average Order Value</span>
+                <span id="kpi-aov" class="text-lg font-bold text-slate-900 font-mono-code block mt-0.5">₹661.30</span>
+                <span class="text-[10px] text-amber-600 font-medium">Zomato: ₹720 (+15.8%)</span>
+            </div>
+            <div class="glass-card rounded-xl p-3.5 border border-slate-200 shadow-xs">
+                <span class="text-[11px] text-slate-500 font-medium block">Units Sold</span>
+                <span id="kpi-units" class="text-lg font-bold text-slate-900 font-mono-code block mt-0.5">14,763</span>
+                <span class="text-[10px] text-slate-400">1.94 items per order</span>
+            </div>
+            <div class="glass-card rounded-xl p-3.5 border border-slate-200 shadow-xs">
+                <span class="text-[11px] text-slate-500 font-medium block">Discounts &amp; Refunds</span>
+                <span id="kpi-deductions" class="text-lg font-bold text-red-600 font-mono-code block mt-0.5">₹2,84,120</span>
+                <span class="text-[10px] text-slate-400">Coupons &amp; spilled drinks</span>
+            </div>
+            <div class="glass-card rounded-xl p-3.5 border border-slate-200 shadow-xs">
+                <span class="text-[11px] text-slate-500 font-medium block">Reconciliation Tie-Out</span>
+                <span class="text-lg font-bold text-emerald-600 font-mono-code block mt-0.5">₹0.00 Diff</span>
+                <span class="text-[10px] text-emerald-600 font-medium">100% Balanced to Source</span>
             </div>
         </div>
 
-        <!-- 5 Top KPI Cards -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div class="glass-card rounded-xl p-4 border border-slate-200 shadow-sm">
-                <span class="text-xs text-slate-500 font-medium block">Total Net Revenue</span>
-                <span class="text-xl font-bold text-slate-900 font-mono-code block mt-1">₹50.3 Lakhs</span>
-                <span class="text-[11px] text-slate-400">90-Day Recognized Net Sales</span>
-            </div>
-            <div class="glass-card rounded-xl p-4 border border-slate-200 shadow-sm">
-                <span class="text-xs text-slate-500 font-medium block">Completed Orders</span>
-                <span class="text-xl font-bold text-slate-900 font-mono-code block mt-1">7,613</span>
-                <span class="text-[11px] text-slate-400">POS: 4,964 | Zomato: 2,649</span>
-            </div>
-            <div class="glass-card rounded-xl p-4 border border-slate-200 shadow-sm">
-                <span class="text-xs text-slate-500 font-medium block">Average Order Value</span>
-                <span class="text-xl font-bold text-slate-900 font-mono-code block mt-1">₹661.12</span>
-                <span class="text-[11px] text-amber-600 font-medium">Zomato AOV: ₹720 (+15.8%)</span>
-            </div>
-            <div class="glass-card rounded-xl p-4 border border-slate-200 shadow-sm">
-                <span class="text-xs text-slate-500 font-medium block">Delivery Share %</span>
-                <span class="text-xl font-bold text-slate-900 font-mono-code block mt-1">44.6%</span>
-                <span class="text-[11px] text-slate-400">% of Total Net Sales</span>
-            </div>
-            <div class="glass-card rounded-xl p-4 border border-slate-200 shadow-sm">
-                <span class="text-xs text-slate-500 font-medium block">Reconciliation Tie-Out</span>
-                <span class="text-xl font-bold text-emerald-600 font-mono-code block mt-1">0.00 Variance</span>
-                <span class="text-[11px] text-emerald-600 font-medium">100% Balanced to Source</span>
-            </div>
-        </div>
+        <!-- ============================================================== -->
+        <!-- VIEW 1: DASHBOARD & OVERVIEW -->
+        <!-- ============================================================== -->
+        <div id="view-overview" class="view-panel space-y-6">
 
-        <!-- Section 1: The Core Finding — Interactive Daypart Explorer -->
-        <div class="glass-card rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-            <div>
-                <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
-                    <i data-lucide="clock" class="w-5 h-5 text-amber-600"></i>
-                    <span>Interactive Daypart Explorer: The "Afternoon Slump" Deficit</span>
-                </h3>
-                <p class="text-xs text-slate-500 mt-1">
-                    Select a time slot to compare in-store footfall against Zomato delivery order share.
-                </p>
-            </div>
-
-            <!-- Daypart Tabs -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <button onclick="selectSlot('morning')" id="tab-morning" class="slot-tab py-2.5 px-4 rounded-xl text-xs font-bold border transition text-left">
-                    <span class="block text-slate-500">08:00 - 11:59</span>
-                    <span class="text-sm">Morning Rush</span>
-                </button>
-                <button onclick="selectSlot('afternoon')" id="tab-afternoon" class="slot-tab py-2.5 px-4 rounded-xl text-xs font-bold border transition text-left bg-amber-500 text-white border-amber-500 shadow-md">
-                    <span class="block text-amber-100">12:00 - 15:59</span>
-                    <span class="text-sm">Afternoon Slump ★</span>
-                </button>
-                <button onclick="selectSlot('evening')" id="tab-evening" class="slot-tab py-2.5 px-4 rounded-xl text-xs font-bold border transition text-left">
-                    <span class="block text-slate-500">16:00 - 19:59</span>
-                    <span class="text-sm">Evening Social</span>
-                </button>
-                <button onclick="selectSlot('night')" id="tab-night" class="slot-tab py-2.5 px-4 rounded-xl text-xs font-bold border transition text-left">
-                    <span class="block text-slate-500">20:00 - 23:00</span>
-                    <span class="text-sm">Night Chill</span>
-                </button>
-            </div>
-
-            <!-- Dynamic Slot Details Card -->
-            <div id="slot-details" class="bg-amber-50/60 border border-amber-200/80 rounded-2xl p-6 space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200/60 pb-3">
-                    <div>
-                        <h4 id="slot-title" class="text-base font-bold text-amber-950">Afternoon Slump (12:00 – 15:59)</h4>
-                        <p id="slot-desc" class="text-xs text-amber-800">Post-lunch dip, iced refreshments, and workday energy refresh.</p>
-                    </div>
-                    <span id="slot-tag" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-200 text-amber-900 w-max">
-                        HIGHEST PROMOTION OPPORTUNITY
+            <!-- Daypart Deficit Spotlight -->
+            <div class="bg-gradient-to-r from-amber-950 via-amber-900 to-slate-900 text-white rounded-2xl p-6 sm:p-7 shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="space-y-2 max-w-2xl">
+                    <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30 uppercase tracking-wide">
+                        Core Marketplace Finding
                     </span>
+                    <h3 class="text-xl sm:text-2xl font-bold">The "Afternoon Slump" Delivery Gap (12:00 – 15:59)</h3>
+                    <p class="text-xs text-amber-100/90 leading-relaxed">
+                        While in-store counter traffic remains active at <strong>15.0% of daily orders</strong> (customers grabbing iced cold brews), Zomato delivery plummets to just <strong>9.8%</strong>. Vanilla Cold Brew generated 262 in-store sales but <strong>0 units</strong> on Zomato due to menu placement.
+                    </p>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-white p-4 rounded-xl border border-amber-200 shadow-xs">
-                        <span class="text-xs text-slate-400 block font-medium">In-Store Order Share</span>
-                        <span id="slot-pos-share" class="text-xl font-bold text-slate-900 font-mono-code">15.0%</span>
-                        <span class="text-[11px] text-slate-500 block mt-0.5">745 In-Store visits</span>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl border border-amber-200 shadow-xs">
-                        <span class="text-xs text-slate-400 block font-medium">Zomato Delivery Share</span>
-                        <span id="slot-zom-share" class="text-xl font-bold text-amber-600 font-mono-code">9.8%</span>
-                        <span class="text-[11px] text-slate-500 block mt-0.5">Only 260 Delivery orders</span>
-                    </div>
-                    <div class="bg-white p-4 rounded-xl border border-amber-200 shadow-xs">
-                        <span class="text-xs text-slate-400 block font-medium">The Delivery Gap</span>
-                        <span id="slot-gap" class="text-xl font-bold text-red-600 font-mono-code">-35% Deficit</span>
-                        <span class="text-[11px] text-slate-500 block mt-0.5">Severe delivery under-penetration</span>
-                    </div>
+                <div class="flex items-center space-x-3 shrink-0">
+                    <button onclick="switchView('promo')" class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition shadow-sm flex items-center space-x-1.5">
+                        <i data-lucide="play-circle" class="w-4 h-4"></i>
+                        <span>Launch Promo Simulator</span>
+                    </button>
                 </div>
-
-                <p id="slot-insight" class="text-xs text-amber-900 leading-relaxed">
-                    <strong>Root Cause Analysis:</strong> While in-store footfall is active with customers purchasing iced cold brews during afternoon warm hours, Zomato delivery dips heavily because the café has no targeted lunchtime or afternoon combo promotion active on the platform.
-                </p>
             </div>
 
-            <!-- Chart -->
-            <div class="h-64 w-full">
-                <canvas id="daypartChart"></canvas>
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Chart 1: Daypart Distribution -->
+                <div class="glass-card rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-bold text-slate-900 flex items-center space-x-1.5">
+                            <i data-lucide="bar-chart-2" class="w-4 h-4 text-amber-600"></i>
+                            <span>Daypart Traffic Share: In-Store POS vs. Zomato</span>
+                        </h4>
+                        <span class="text-[11px] text-slate-400 font-mono-code">% of Channel Total</span>
+                    </div>
+                    <div class="h-64 w-full">
+                        <canvas id="chart-dayparts"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Weekly Revenue Trend -->
+                <div class="glass-card rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-bold text-slate-900 flex items-center space-x-1.5">
+                            <i data-lucide="trending-up" class="w-4 h-4 text-amber-600"></i>
+                            <span>14-Week Net Revenue Trend (₹)</span>
+                        </h4>
+                        <span class="text-[11px] text-slate-400 font-mono-code">Weekly Aggregate</span>
+                    </div>
+                    <div class="h-64 w-full">
+                        <canvas id="chart-weekly"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Channel Performance Matrix Table -->
+            <div class="glass-card rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
+                <h4 class="text-sm font-bold text-slate-900 flex items-center space-x-1.5">
+                    <i data-lucide="table" class="w-4 h-4 text-amber-600"></i>
+                    <span>Channel Financial Reconciliation (90-Day Summary)</span>
+                </h4>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200 text-xs">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 font-bold">
+                                <th class="py-2.5 px-4 text-left">Sales Channel</th>
+                                <th class="py-2.5 px-3 text-right">Total Placed</th>
+                                <th class="py-2.5 px-3 text-right">Completed</th>
+                                <th class="py-2.5 px-3 text-right">Cancelled</th>
+                                <th class="py-2.5 px-3 text-right">Cancel Rate</th>
+                                <th class="py-2.5 px-3 text-right">Gross Sales (₹)</th>
+                                <th class="py-2.5 px-3 text-right">Discounts (₹)</th>
+                                <th class="py-2.5 px-3 text-right">Refunds (₹)</th>
+                                <th class="py-2.5 px-3 text-right">Net Sales (₹)</th>
+                                <th class="py-2.5 px-3 text-right">AOV (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 font-mono-code">
+                            <tr>
+                                <td class="py-2.5 px-4 font-sans font-bold text-slate-900">In-Store POS</td>
+                                <td class="py-2.5 px-3 text-right">5,118</td>
+                                <td class="py-2.5 px-3 text-right text-emerald-700 font-bold">4,964</td>
+                                <td class="py-2.5 px-3 text-right text-slate-500">154</td>
+                                <td class="py-2.5 px-3 text-right">3.01%</td>
+                                <td class="py-2.5 px-3 text-right">₹32,24,100</td>
+                                <td class="py-2.5 px-3 text-right">₹1,12,450</td>
+                                <td class="py-2.5 px-3 text-right">₹21,800</td>
+                                <td class="py-2.5 px-3 text-right font-bold text-slate-900">₹30,89,850</td>
+                                <td class="py-2.5 px-3 text-right font-bold">₹622.45</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5 px-4 font-sans font-bold text-slate-900">Zomato Online Delivery</td>
+                                <td class="py-2.5 px-3 text-right">2,850</td>
+                                <td class="py-2.5 px-3 text-right text-emerald-700 font-bold">2,649</td>
+                                <td class="py-2.5 px-3 text-right text-red-600 font-bold">201</td>
+                                <td class="py-2.5 px-3 text-right text-red-600 font-bold">7.05%</td>
+                                <td class="py-2.5 px-3 text-right">₹21,12,380</td>
+                                <td class="py-2.5 px-3 text-right">₹1,38,200</td>
+                                <td class="py-2.5 px-3 text-right">₹29,520</td>
+                                <td class="py-2.5 px-3 text-right font-bold text-slate-900">₹19,44,660</td>
+                                <td class="py-2.5 px-3 text-right font-bold text-amber-700">₹734.11</td>
+                            </tr>
+                            <tr class="bg-slate-50 font-bold border-t-2 border-slate-300">
+                                <td class="py-2.5 px-4 font-sans text-slate-900">COMBINED PORTFOLIO</td>
+                                <td class="py-2.5 px-3 text-right">7,968</td>
+                                <td class="py-2.5 px-3 text-right text-emerald-700">7,613</td>
+                                <td class="py-2.5 px-3 text-right">355</td>
+                                <td class="py-2.5 px-3 text-right">4.46%</td>
+                                <td class="py-2.5 px-3 text-right">₹53,36,480</td>
+                                <td class="py-2.5 px-3 text-right">₹2,50,650</td>
+                                <td class="py-2.5 px-3 text-right">₹51,320</td>
+                                <td class="py-2.5 px-3 text-right text-emerald-700">₹50,34,510</td>
+                                <td class="py-2.5 px-3 text-right">₹661.30</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- VIEW 2: FULL MENU PERFORMANCE CATALOG -->
+        <!-- ============================================================== -->
+        <div id="view-menu" class="view-panel hidden space-y-4">
+            <div class="glass-card rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Full Menu Performance Catalog &amp; Channel Mix</h3>
+                        <p class="text-xs text-slate-500">Search, filter, and identify channel imbalances across all 17 menu items.</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input type="text" id="menu-search" oninput="renderMenuTable()" placeholder="Search item name or SKU..." class="bg-slate-100 border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500 w-64">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-slate-200 text-xs">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 font-bold">
+                                <th class="py-2.5 px-3 text-left">SKU</th>
+                                <th class="py-2.5 px-4 text-left">Item Name</th>
+                                <th class="py-2.5 px-3 text-left">Category</th>
+                                <th class="py-2.5 px-3 text-right">In-Store Rate</th>
+                                <th class="py-2.5 px-3 text-right">In-Store Qty</th>
+                                <th class="py-2.5 px-3 text-right">Zomato Qty</th>
+                                <th class="py-2.5 px-3 text-right">Total Units</th>
+                                <th class="py-2.5 px-3 text-right">Zomato Share %</th>
+                                <th class="py-2.5 px-3 text-right">Total Net (₹)</th>
+                                <th class="py-2.5 px-4 text-left">Opportunity Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="menu-tbody" class="divide-y divide-slate-200 font-mono-code">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <!-- Section 2: Menu Item Performance & The Cold Brew Disconnect -->
-        <div class="glass-card rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-5">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <!-- ============================================================== -->
+        <!-- VIEW 3: PROMOTION SIMULATOR -->
+        <!-- ============================================================== -->
+        <div id="view-promo" class="view-panel hidden space-y-6">
+            <div class="glass-card rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-6">
                 <div>
-                    <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
-                        <i data-lucide="coffee" class="w-5 h-5 text-amber-600"></i>
-                        <span>Menu Item Performance: The "Vanilla Cold Brew" Disconnect</span>
-                    </h3>
-                    <p class="text-xs text-slate-500">In-Store Volume vs. Zomato Online Delivery Volume</p>
+                    <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-amber-100 text-amber-800 uppercase tracking-wide">
+                        Targeted Strategy
+                    </span>
+                    <h3 class="text-xl font-bold text-slate-900 mt-1">Zomato "Afternoon Work Refresh" Combo Simulator</h3>
+                    <p class="text-xs text-slate-500 mt-1">
+                        Model the unit economics and 30-day projected financial return of bundling Vanilla Cold Brew + Butter Flaky Croissant during the 12:00–16:00 afternoon slump.
+                    </p>
                 </div>
-                <div class="inline-flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">
-                    <span>Highlighted: Candidate for Zomato Promotion</span>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Interactive Sliders -->
+                    <div class="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-200">
+                        <h4 class="font-bold text-xs text-slate-700 uppercase tracking-wider">Simulation Parameters</h4>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Combo Discount %:</span>
+                                <span id="val-discount" class="font-mono-code text-amber-700">17.5%</span>
+                            </div>
+                            <input type="range" id="input-discount" min="5" max="30" step="0.5" value="17.5" oninput="recalcSimulator()" class="w-full accent-amber-600">
+                            <span class="text-[11px] text-slate-400">Baseline delivery price: ₹484 (Cold Brew ₹286 + Croissant ₹198)</span>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Target Daily Combo Orders:</span>
+                                <span id="val-orders" class="font-mono-code text-amber-700">12 orders/day</span>
+                            </div>
+                            <input type="range" id="input-orders" min="3" max="30" step="1" value="12" oninput="recalcSimulator()" class="w-full accent-amber-600">
+                            <span class="text-[11px] text-slate-400">Current afternoon Zomato baseline is ~2.7 orders/day</span>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Zomato Platform Commission Take-Rate:</span>
+                                <span id="val-commission" class="font-mono-code text-slate-700">20.0%</span>
+                            </div>
+                            <input type="range" id="input-commission" min="15" max="25" step="0.5" value="20" oninput="recalcSimulator()" class="w-full accent-amber-600">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span>Estimated Food Cost % (COGS):</span>
+                                <span id="val-cogs" class="font-mono-code text-slate-700">26.0%</span>
+                            </div>
+                            <input type="range" id="input-cogs" min="20" max="35" step="0.5" value="26" oninput="recalcSimulator()" class="w-full accent-amber-600">
+                        </div>
+                    </div>
+
+                    <!-- Real-Time Projected Economics Output -->
+                    <div class="bg-amber-50/70 p-5 rounded-xl border border-amber-200/80 flex flex-col justify-between space-y-4">
+                        <div>
+                            <h4 class="font-bold text-xs text-amber-900 uppercase tracking-wider mb-3">Projected Order &amp; Monthly Economics</h4>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex justify-between py-1 border-b border-amber-200/60">
+                                    <span class="text-slate-600">Discounted Customer Price</span>
+                                    <span id="out-price" class="font-bold font-mono-code text-slate-900">₹399.00</span>
+                                </div>
+                                <div class="flex justify-between py-1 border-b border-amber-200/60">
+                                    <span class="text-slate-600">Platform Commission</span>
+                                    <span id="out-commission" class="font-bold font-mono-code text-red-600">- ₹79.80</span>
+                                </div>
+                                <div class="flex justify-between py-1 border-b border-amber-200/60">
+                                    <span class="text-slate-600">Net Cash Received</span>
+                                    <span id="out-payout" class="font-bold font-mono-code text-slate-900">₹319.20</span>
+                                </div>
+                                <div class="flex justify-between py-1 border-b border-amber-200/60">
+                                    <span class="text-slate-600">Ingredient Cost (COGS)</span>
+                                    <span id="out-cogs" class="font-bold font-mono-code text-slate-700">- ₹125.84</span>
+                                </div>
+                                <div class="flex justify-between py-1.5 bg-white p-2.5 rounded-lg border border-amber-200">
+                                    <span class="font-bold text-slate-900">Net Contribution / Order</span>
+                                    <span id="out-contrib" class="font-bold font-mono-code text-emerald-700 text-sm">₹193.36 (60.6%)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 30-Day Totals -->
+                        <div class="bg-amber-600 text-white p-4 rounded-xl space-y-1">
+                            <span class="text-[11px] text-amber-200 uppercase tracking-wider block font-medium">30-Day Incremental Net Profit</span>
+                            <span id="out-monthly-profit" class="text-2xl font-extrabold font-mono-code block">₹69,609.60</span>
+                            <span class="text-[11px] text-amber-100 block">Based on 360 monthly incremental afternoon orders</span>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="overflow-x-auto">
+        <!-- ============================================================== -->
+        <!-- VIEW 4: RECONCILIATION & AUDIT -->
+        <!-- ============================================================== -->
+        <div id="view-recon" class="view-panel hidden space-y-6">
+            <!-- Row Count Tie-Out -->
+            <div class="glass-card rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
+                <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+                    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+                    <span>Row Count Reconciliation (Source Exports vs. Database)</span>
+                </h3>
                 <table class="min-w-full divide-y divide-slate-200 text-xs">
                     <thead>
                         <tr class="bg-slate-100 text-slate-700 font-bold">
-                            <th class="py-3 px-4 text-left">SKU &amp; Item Name</th>
-                            <th class="py-3 px-3 text-left">Category</th>
-                            <th class="py-3 px-3 text-right">In-Store Units</th>
-                            <th class="py-3 px-3 text-right">Zomato Units</th>
-                            <th class="py-3 px-3 text-right">Total Units</th>
-                            <th class="py-3 px-3 text-right">Zomato Share %</th>
-                            <th class="py-3 px-4 text-left">Promotion Candidacy Status</th>
+                            <th class="py-2.5 px-4 text-left">Source Channel</th>
+                            <th class="py-2.5 px-3 text-right">Raw Export Rows</th>
+                            <th class="py-2.5 px-3 text-right">Duplicates Quarantined</th>
+                            <th class="py-2.5 px-3 text-right">Corrupted / Invalid</th>
+                            <th class="py-2.5 px-3 text-right">Clean Accepted Lines</th>
+                            <th class="py-2.5 px-3 text-right">Variance</th>
+                            <th class="py-2.5 px-4 text-center">Reconciliation Status</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 font-mono-code">
-                        <tr class="bg-amber-50 font-bold border-l-4 border-amber-500">
-                            <td class="py-3 px-4 font-sans text-slate-900">COF-05: Vanilla Cold Brew</td>
-                            <td class="py-3 px-3 font-sans text-slate-600">Coffee</td>
-                            <td class="py-3 px-3 text-right text-slate-900">262</td>
-                            <td class="py-3 px-3 text-right text-red-600">0</td>
-                            <td class="py-3 px-3 text-right">262</td>
-                            <td class="py-3 px-3 text-right text-red-600">0.0%</td>
-                            <td class="py-3 px-4 font-sans text-amber-800 font-bold">★ HIGH PRIORITY: In-Store Star, Zero Delivery</td>
+                        <tr>
+                            <td class="py-2.5 px-4 font-sans font-bold text-slate-900">In-Store POS (pos_exports.csv)</td>
+                            <td class="py-2.5 px-3 text-right">8,730</td>
+                            <td class="py-2.5 px-3 text-right text-red-600">5</td>
+                            <td class="py-2.5 px-3 text-right text-red-600">2</td>
+                            <td class="py-2.5 px-3 text-right text-emerald-700 font-bold">8,723</td>
+                            <td class="py-2.5 px-3 text-right font-bold text-emerald-600">0</td>
+                            <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">100% TIED OUT</span></td>
                         </tr>
                         <tr>
-                            <td class="py-3 px-4 font-sans text-slate-900">BAK-01: Butter Flaky Croissant</td>
-                            <td class="py-3 px-3 font-sans text-slate-600">Bakery</td>
-                            <td class="py-3 px-3 text-right">1,024</td>
-                            <td class="py-3 px-3 text-right">486</td>
-                            <td class="py-3 px-3 text-right">1,510</td>
-                            <td class="py-3 px-3 text-right text-slate-700">32.2%</td>
-                            <td class="py-3 px-4 font-sans text-slate-600">Natural Pairing Bundle Item</td>
-                        </tr>
-                        <tr>
-                            <td class="py-3 px-4 font-sans text-slate-900">COF-03: Velvet Cappuccino</td>
-                            <td class="py-3 px-3 font-sans text-slate-600">Coffee</td>
-                            <td class="py-3 px-3 text-right">1,410</td>
-                            <td class="py-3 px-3 text-right">895</td>
-                            <td class="py-3 px-3 text-right">2,305</td>
-                            <td class="py-3 px-3 text-right text-slate-700">38.8%</td>
-                            <td class="py-3 px-4 font-sans text-slate-600">Core Volume Anchor</td>
-                        </tr>
-                        <tr>
-                            <td class="py-3 px-4 font-sans text-slate-900">FOD-02: Paneer Tikka Focaccia</td>
-                            <td class="py-3 px-3 font-sans text-slate-600">Food</td>
-                            <td class="py-3 px-3 text-right">380</td>
-                            <td class="py-3 px-3 text-right">540</td>
-                            <td class="py-3 px-3 text-right">920</td>
-                            <td class="py-3 px-3 text-right text-emerald-600">58.7%</td>
-                            <td class="py-3 px-4 font-sans text-emerald-700">Delivery Favorite</td>
+                            <td class="py-2.5 px-4 font-sans font-bold text-slate-900">Zomato Delivery (zomato_exports.csv)</td>
+                            <td class="py-2.5 px-3 text-right">6,047</td>
+                            <td class="py-2.5 px-3 text-right text-red-600">4</td>
+                            <td class="py-2.5 px-3 text-right text-red-600">3</td>
+                            <td class="py-2.5 px-3 text-right text-emerald-700 font-bold">6,040</td>
+                            <td class="py-2.5 px-3 text-right font-bold text-emerald-600">0</td>
+                            <td class="py-2.5 px-4 text-center font-sans"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">100% TIED OUT</span></td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-        </div>
 
-        <!-- Section 3: Strategic Recommendation & A/B Test Framework -->
-        <div class="glass-card rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-            <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
-                <i data-lucide="target" class="w-5 h-5 text-amber-600"></i>
-                <span>Actionable Recommendation: "Afternoon Work Refresh" Campaign</span>
-            </h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Proposal Card -->
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-3">
-                    <h4 class="font-bold text-slate-900 text-sm">Campaign Architecture</h4>
-                    <ul class="text-xs text-slate-600 space-y-2 list-disc pl-4">
-                        <li><strong>Target Time Window:</strong> Active exclusively between <strong>12:00 PM and 4:00 PM</strong> (Monday through Friday).</li>
-                        <li><strong>Bundle Offering:</strong> 1x Vanilla Cold Brew (₹286 delivery menu price) + 1x Butter Flaky Croissant (₹198 delivery menu price). Standalone total = ₹484.</li>
-                        <li><strong>Special Combo Price:</strong> <strong>₹399</strong> (17.5% bundle incentive).</li>
-                        <li><strong>Placement:</strong> Featured carousel banner on Zomato Merchant App targeted at office delivery addresses within 3 km.</li>
-                    </ul>
+            <!-- Rejected Rows Log Table -->
+            <div class="glass-card rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
+                <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+                    <i data-lucide="shield-alert" class="w-4 h-4 text-red-600"></i>
+                    <span>Quarantined Rejection Audit Trail (14 Defective Records)</span>
+                </h3>
+                <div class="overflow-x-auto max-h-72">
+                    <table class="min-w-full divide-y divide-slate-200 text-xs">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 font-bold sticky top-0">
+                                <th class="py-2 px-3 text-center">ID</th>
+                                <th class="py-2 px-3 text-center">Source</th>
+                                <th class="py-2 px-3 text-center">Raw Order ID</th>
+                                <th class="py-2 px-3 text-left">Rejection Reason</th>
+                                <th class="py-2 px-4 text-left">Raw Payload Snippet</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recon-rejections-tbody" class="divide-y divide-slate-200 font-mono-code text-[11px]">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
                 </div>
-
-                <!-- Margin Guardrails Card -->
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-3">
-                    <h4 class="font-bold text-slate-900 text-sm">Unit Contribution Economics</h4>
-                    <div class="space-y-1.5 text-xs">
-                        <div class="flex justify-between py-1 border-b border-slate-200">
-                            <span class="text-slate-500">Combo Sale Price</span>
-                            <span class="font-bold font-mono-code text-slate-900">₹399.00</span>
-                        </div>
-                        <div class="flex justify-between py-1 border-b border-slate-200">
-                            <span class="text-slate-500">Zomato Commission (20% Take Rate)</span>
-                            <span class="font-bold font-mono-code text-red-600">- ₹79.80</span>
-                        </div>
-                        <div class="flex justify-between py-1 border-b border-slate-200">
-                            <span class="text-slate-500">Net Café Cash Payout</span>
-                            <span class="font-bold font-mono-code text-slate-900">₹319.20</span>
-                        </div>
-                        <div class="flex justify-between py-1 border-b border-slate-200">
-                            <span class="text-slate-500">Estimated Food Cost (COGS @ 26%)</span>
-                            <span class="font-bold font-mono-code text-slate-600">- ₹125.84</span>
-                        </div>
-                        <div class="flex justify-between py-1 pt-2">
-                            <span class="font-bold text-slate-900">Net Contribution Margin</span>
-                            <span class="font-bold font-mono-code text-emerald-600">₹193.36 (60.6%)</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Measurement Plan -->
-            <div class="bg-amber-50/50 border border-amber-200 rounded-xl p-4 text-xs text-amber-950 space-y-1.5">
-                <span class="font-bold">A/B Measurement Plan:</span>
-                <p>Run a 4-week pre/post test (2-week baseline vs 2-week active promotion). Target metric: Lift afternoon slump delivery volume from the current <strong>2.7 orders/day</strong> to <strong>&ge; 7.5 orders/day</strong> without cannibalizing regular evening orders.</p>
             </div>
         </div>
 
-        <!-- Section 4: Production SQL Queries Viewer -->
-        <div class="glass-card rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                    <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
-                        <i data-lucide="database" class="w-5 h-5 text-amber-600"></i>
-                        <span>Production SQL Queries</span>
-                    </h3>
-                    <p class="text-xs text-slate-500">Inspect the exact CTE-based queries powering this project.</p>
-                </div>
-                <!-- SQL Tabs -->
-                <div class="flex space-x-2">
-                    <button onclick="showQuery('cleaning')" id="btn-q-cleaning" class="px-3 py-1 text-xs font-semibold rounded-lg bg-slate-900 text-white">01 Cleaning</button>
-                    <button onclick="showQuery('kpis')" id="btn-q-kpis" class="px-3 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200">02 Channel KPIs</button>
-                    <button onclick="showQuery('dayparts')" id="btn-q-dayparts" class="px-3 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200">03 Dayparts</button>
-                    <button onclick="showQuery('promo')" id="btn-q-promo" class="px-3 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200">04 Promo</button>
-                </div>
-            </div>
+        <!-- ============================================================== -->
+        <!-- VIEW 5: SQL QUERIES -->
+        <!-- ============================================================== -->
+        <div id="view-sql" class="view-panel hidden space-y-4">
+            <div class="glass-card rounded-2xl p-6 border border-slate-200 shadow-xs space-y-3">
+                <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+                    <i data-lucide="code-2" class="w-4 h-4 text-amber-600"></i>
+                    <span>Production SQL Scripts Executed on SQLite</span>
+                </h3>
+                <pre class="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto font-mono-code leading-relaxed max-h-96">
+-- 1. High-Level Executive Channel Summary
+SELECT 
+    c.channel_name,
+    COUNT(o.order_id) AS total_orders_placed,
+    SUM(CASE WHEN o.order_status = 'COMPLETED' THEN 1 ELSE 0 END) AS completed_orders,
+    SUM(CASE WHEN o.order_status = 'CANCELLED' THEN 1 ELSE 0 END) AS cancelled_orders,
+    ROUND(100.0 * SUM(CASE WHEN o.order_status = 'CANCELLED' THEN 1 ELSE 0 END) / COUNT(o.order_id), 2) AS cancellation_rate_pct,
+    ROUND(SUM(o.net_sales_amount), 2) AS net_sales_inr,
+    ROUND(SUM(o.net_sales_amount) / NULLIF(SUM(CASE WHEN o.order_status = 'COMPLETED' THEN 1 ELSE 0 END), 0), 2) AS aov_inr
+FROM fact_orders o
+JOIN dim_channels c ON o.channel_id = c.channel_id
+GROUP BY c.channel_name;
 
-            <pre id="sql-display" class="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto font-mono-code leading-relaxed max-h-96"></pre>
+-- 2. Identify In-Store Champions with Zero Zomato Sales
+SELECT 
+    m.item_name,
+    SUM(CASE WHEN fo.channel_id = 'CHN-POS' THEN foi.quantity ELSE 0 END) AS in_store_units,
+    SUM(CASE WHEN fo.channel_id = 'CHN-ZOM' THEN foi.quantity ELSE 0 END) AS zomato_units
+FROM fact_order_items foi
+JOIN fact_orders fo ON foi.order_id = fo.order_id
+JOIN dim_menu_items m ON foi.item_id = m.item_id
+WHERE fo.order_status = 'COMPLETED'
+GROUP BY m.item_id, m.item_name
+HAVING in_store_units >= 200 AND zomato_units = 0;
+                </pre>
+            </div>
         </div>
 
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-        <a href="index.html" class="font-bold text-amber-700 hover:underline">← Back to Master Portfolio</a> • <a href="sap-reconciliation.html" class="hover:underline">Next: SAP 3-Way Match Project →</a>
-    </footer>
-
+    <!-- Embedded Data & Interactive Scripts -->
     <script>
         lucide.createIcons();
 
-        // Slot Data
-        const slotData = {
-            morning: {
-                title: "Morning Rush (08:00 – 11:59)",
-                desc: "Breakfast rush, morning commute caffeine, and fresh croissants.",
-                tag: "IN-STORE DOMINATED",
-                posShare: "45.0%",
-                zomShare: "20.0%",
-                gap: "Counter Peak",
-                insight: "Morning Rush accounts for almost half of in-store daily footfall (Espresso, Americano, Cappuccino, and Croissants)."
-            },
-            afternoon: {
-                title: "Afternoon Slump (12:00 – 15:59)",
-                desc: "Post-lunch dip, iced refreshments, and workday energy refresh.",
-                tag: "HIGHEST PROMOTION OPPORTUNITY",
-                posShare: "15.0%",
-                zomShare: "9.8%",
-                gap: "-35% Deficit",
-                insight: "Root Cause Analysis: While in-store footfall is active with customers purchasing cold brews during afternoon warm hours, Zomato delivery dips heavily because the café has no targeted lunchtime or afternoon combo promotion active on the platform."
-            },
-            evening: {
-                title: "Evening Social (16:00 – 19:59)",
-                desc: "Post-work socializing, artisanal toasts, and specialty lattes.",
-                tag: "STRONG DUAL TRAFFIC",
-                posShare: "30.0%",
-                zomShare: "45.0%",
-                gap: "+50% Zomato Surge",
-                insight: "Evening Social is the peak delivery window on Zomato, driven by savory food items (Focaccia, Avocado Toast) and group beverage orders."
-            },
-            night: {
-                title: "Night Chill (20:00 – 23:00)",
-                desc: "Late-night relaxation, desserts, and hot chocolates.",
-                tag: "DELIVERY SKEWED",
-                posShare: "10.0%",
-                zomShare: "25.2%",
-                gap: "+150% Delivery Skew",
-                insight: "Night orders skew heavily toward delivery as customers order comfort desserts and beverages from home."
-            }
-        };
+        // 1. Embedded Data
+        const menuCatalog = [
+            { id: "COF-05", name: "Vanilla Cold Brew", cat: "Coffee", price: 260, posQty: 262, zomQty: 0, posNet: 65038, zomNet: 0, totalNet: 65038, status: "★ HIGH PRIORITY: In-Store Star, Zero Delivery" },
+            { id: "BAK-01", name: "Butter Flaky Croissant", cat: "Bakery", price: 180, posQty: 1024, zomQty: 486, posNet: 178200, zomNet: 91400, totalNet: 269600, status: "Natural Pairing Bundle Item" },
+            { id: "COF-03", name: "Velvet Cappuccino", cat: "Coffee", price: 230, posQty: 1410, zomQty: 895, posNet: 310200, zomNet: 215300, totalNet: 525500, status: "Core Volume Anchor" },
+            { id: "COF-02", name: "Classic Americano", cat: "Coffee", price: 190, posQty: 890, zomQty: 320, posNet: 162400, zomNet: 64200, totalNet: 226600, status: "Everyday Staple" },
+            { id: "COF-04", name: "Artisan Flat White", cat: "Coffee", price: 250, posQty: 680, zomQty: 210, posNet: 165000, zomNet: 55400, totalNet: 220400, status: "Specialty Drink" },
+            { id: "COF-06", name: "Hazelnut Praline Latte", cat: "Coffee", price: 270, posQty: 450, zomQty: 610, posNet: 118000, zomNet: 174000, totalNet: 292000, status: "Delivery Sweet Drink" },
+            { id: "COF-07", name: "Single Origin Pour Over", cat: "Coffee", price: 290, posQty: 240, zomQty: 45, posNet: 68000, zomNet: 13500, totalNet: 81500, status: "In-Store Experience Item" },
+            { id: "COF-08", name: "Iced Caramel Macchiato", cat: "Coffee", price: 280, posQty: 380, zomQty: 490, posNet: 102000, zomNet: 145000, totalNet: 247000, status: "High Delivery Affinity" },
+            { id: "BAK-02", name: "Toasted Almond Biscotti", cat: "Bakery", price: 140, posQty: 560, zomQty: 180, posNet: 75000, zomNet: 26000, totalNet: 101000, status: "Counter Snack" },
+            { id: "BAK-03", name: "Blueberry Crumble Muffin", cat: "Bakery", price: 200, posQty: 620, zomQty: 390, posNet: 120000, zomNet: 82000, totalNet: 202000, status: "Sweet Food Favorite" },
+            { id: "FOD-01", name: "Sourdough Avocado Toast", cat: "Food", price: 320, posQty: 410, zomQty: 380, posNet: 128000, zomNet: 128000, totalNet: 256000, status: "Balanced Healthy Food" },
+            { id: "FOD-02", name: "Paneer Tikka Focaccia", cat: "Food", price: 290, posQty: 380, zomQty: 540, posNet: 106000, zomNet: 165000, totalNet: 271000, status: "Top Delivery Savory Meal" },
+            { id: "FOD-03", name: "Truffle Mushroom Melt", cat: "Food", price: 340, posQty: 290, zomQty: 310, posNet: 95000, zomNet: 112000, totalNet: 207000, status: "Premium Savory Toast" },
+            { id: "SPC-01", name: "Cascara Berry Spritzer", cat: "Specialty", price: 220, posQty: 210, zomQty: 85, posNet: 44000, zomNet: 19800, totalNet: 63800, status: "Summer Refresher" },
+            { id: "SPC-02", name: "Uji Ceremonial Matcha", cat: "Specialty", price: 310, posQty: 190, zomQty: 120, posNet: 56000, zomNet: 39000, totalNet: 95000, status: "Niche Premium Matcha" },
+            { id: "SPC-03", name: "Belgian Dark Hot Chocolate", cat: "Specialty", price: 270, posQty: 310, zomQty: 480, posNet: 81000, zomNet: 136000, totalNet: 217000, status: "Night Chill Leader" }
+        ];
 
-        function selectSlot(slotKey) {
-            const data = slotData[slotKey];
-            document.getElementById('slot-title').innerText = data.title;
-            document.getElementById('slot-desc').innerText = data.desc;
-            document.getElementById('slot-tag').innerText = data.tag;
-            document.getElementById('slot-pos-share').innerText = data.posShare;
-            document.getElementById('slot-zom-share').innerText = data.zomShare;
-            document.getElementById('slot-gap').innerText = data.gap;
-            document.getElementById('slot-insight').innerHTML = `<strong>Insight:</strong> ${data.insight}`;
+        const rejectionsData = [
+            { id: 1, src: "POS", rawId: "POS-10016", reason: "DUPLICATE_SOURCE_ROW", payload: '{"pos_order_id": "POS-10016", "item_seq": 1, "qty": 1...}' },
+            { id: 2, src: "POS", rawId: "POS-10083", reason: "DUPLICATE_SOURCE_ROW", payload: '{"pos_order_id": "POS-10083", "item_seq": 2, "qty": 2...}' },
+            { id: 3, src: "POS", rawId: "POS-ERR-001", reason: "CORRUPTED_OR_OUT_OF_BOUNDS_TIMESTAMP", payload: '{"order_timestamp": "2026-13-45 25:99:00"}' },
+            { id: 4, src: "POS", rawId: "POS-ERR-002", reason: "INVALID_QUANTITY_OR_PRICE", payload: '{"quantity": -2, "unit_price": 160.0}' },
+            { id: 5, src: "ZOMATO", rawId: "ZOM-50026", reason: "DUPLICATE_SOURCE_ROW", payload: '{"zomato_order_id": "ZOM-50026", "item_seq": 1...}' },
+            { id: 6, src: "ZOMATO", rawId: "POS-10025", reason: "CROSS_CHANNEL_ID_COLLISION", payload: '{"zomato_order_id": "POS-10025", "channel": "Zomato"}' },
+            { id: 7, src: "ZOMATO", rawId: "ZOM-ERR-001", reason: "INVALID_QUANTITY_OR_PRICE", payload: '{"quantity": 1, "unit_price": -280.0}' },
+            { id: 8, src: "ZOMATO", rawId: "ZOM-ERR-002", reason: "MISSING_OR_UNMAPPED_ITEM", payload: '{"item_id": "", "item_name": ""}' }
+        ];
 
-            document.querySelectorAll('.slot-tab').forEach(b => {
-                b.className = "slot-tab py-2.5 px-4 rounded-xl text-xs font-bold border transition text-left bg-white text-slate-700 border-slate-200";
+        // 2. Navigation Tab Switcher
+        function switchView(viewKey) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`view-${viewKey}`).classList.remove('hidden');
+
+            ['overview', 'menu', 'promo', 'recon', 'sql'].forEach(k => {
+                const btn = document.getElementById(`nav-${k}`);
+                if (k === viewKey) {
+                    btn.className = "px-3 py-1 rounded-md text-xs bg-white text-slate-900 shadow-xs transition font-bold";
+                } else {
+                    btn.className = "px-3 py-1 rounded-md text-xs text-slate-600 hover:text-slate-900 transition font-medium";
+                }
             });
-            document.getElementById(`tab-${slotKey}`).className = "slot-tab py-2.5 px-4 rounded-xl text-xs font-bold border transition text-left bg-amber-500 text-white border-amber-500 shadow-md";
         }
 
-        // Render Daypart Chart
-        const ctx = document.getElementById('daypartChart').getContext('2d');
-        new Chart(ctx, {
+        // 3. Render Menu Table
+        function renderMenuTable() {
+            const query = (document.getElementById('menu-search').value || '').toLowerCase();
+            const catFilter = document.getElementById('filter-category').value;
+            const tbody = document.getElementById('menu-tbody');
+            tbody.innerHTML = '';
+
+            menuCatalog.forEach(it => {
+                if (catFilter !== 'ALL' && it.cat !== catFilter) return;
+                if (query && !it.name.toLowerCase().includes(query) && !it.id.toLowerCase().includes(query)) return;
+
+                const tr = document.createElement('tr');
+                const isPromo = it.id === 'COF-05';
+                if (isPromo) tr.className = "bg-amber-50 font-bold border-l-4 border-amber-500";
+
+                const totalUnits = it.posQty + it.zomQty;
+                const zomShare = ((it.zomQty / totalUnits) * 100).toFixed(1);
+
+                tr.innerHTML = `
+                    <td class="py-2.5 px-3 font-sans text-slate-500">${it.id}</td>
+                    <td class="py-2.5 px-4 font-sans ${isPromo ? 'text-amber-900 font-bold' : 'text-slate-900'}">${it.name}</td>
+                    <td class="py-2.5 px-3 font-sans text-slate-600">${it.cat}</td>
+                    <td class="py-2.5 px-3 text-right">₹${it.price}</td>
+                    <td class="py-2.5 px-3 text-right font-bold text-slate-900">${it.posQty.toLocaleString()}</td>
+                    <td class="py-2.5 px-3 text-right font-bold ${it.zomQty === 0 ? 'text-red-600' : 'text-slate-700'}">${it.zomQty.toLocaleString()}</td>
+                    <td class="py-2.5 px-3 text-right font-bold">${totalUnits.toLocaleString()}</td>
+                    <td class="py-2.5 px-3 text-right font-bold ${zomShare < 15 ? 'text-red-600' : 'text-slate-700'}">${zomShare}%</td>
+                    <td class="py-2.5 px-3 text-right font-bold text-emerald-700">₹${it.totalNet.toLocaleString()}</td>
+                    <td class="py-2.5 px-4 font-sans ${isPromo ? 'text-amber-800 font-bold' : 'text-slate-600'} text-xs">${it.status}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        renderMenuTable();
+
+        // 4. Render Rejections
+        function renderRejections() {
+            const tbody = document.getElementById('recon-rejections-tbody');
+            tbody.innerHTML = '';
+            rejectionsData.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-2 px-3 text-center text-slate-400">${r.id}</td>
+                    <td class="py-2 px-3 text-center font-bold text-slate-700">${r.src}</td>
+                    <td class="py-2 px-3 text-center text-slate-600">${r.rawId}</td>
+                    <td class="py-2 px-3 font-bold text-red-600">${r.reason}</td>
+                    <td class="py-2 px-4 text-slate-500 font-mono-code">${r.payload}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        renderRejections();
+
+        // 5. Recalculate Promotion Simulator
+        function recalcSimulator() {
+            const discountPct = parseFloat(document.getElementById('input-discount').value);
+            const dailyOrders = parseInt(document.getElementById('input-orders').value);
+            const commPct = parseFloat(document.getElementById('input-commission').value);
+            const cogsPct = parseFloat(document.getElementById('input-cogs').value);
+
+            document.getElementById('val-discount').innerText = discountPct.toFixed(1) + '%';
+            document.getElementById('val-orders').innerText = dailyOrders + ' orders/day';
+            document.getElementById('val-commission').innerText = commPct.toFixed(1) + '%';
+            document.getElementById('val-cogs').innerText = cogsPct.toFixed(1) + '%';
+
+            const basePrice = 484.0; // ₹286 Cold Brew + ₹198 Croissant
+            const customerPrice = basePrice * (1.0 - discountPct / 100.0);
+            const commission = customerPrice * (commPct / 100.0);
+            const netCash = customerPrice - commission;
+            const cogs = basePrice * (cogsPct / 100.0);
+            const unitContrib = netCash - cogs;
+            const monthlyProfit = unitContrib * dailyOrders * 30;
+
+            document.getElementById('out-price').innerText = '₹' + customerPrice.toFixed(2);
+            document.getElementById('out-commission').innerText = '- ₹' + commission.toFixed(2);
+            document.getElementById('out-payout').innerText = '₹' + netCash.toFixed(2);
+            document.getElementById('out-cogs').innerText = '- ₹' + cogs.toFixed(2);
+            document.getElementById('out-contrib').innerText = '₹' + unitContrib.toFixed(2) + ' (' + ((unitContrib / customerPrice) * 100).toFixed(1) + '%)';
+            document.getElementById('out-monthly-profit').innerText = '₹' + monthlyProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        recalcSimulator();
+
+        // 6. Dynamic Filter Response on KPI Cards
+        function applyFilters() {
+            const chn = document.getElementById('filter-channel').value;
+            const cat = document.getElementById('filter-category').value;
+            renderMenuTable();
+
+            if (chn === 'POS') {
+                document.getElementById('kpi-net-sales').innerText = '₹30,89,850';
+                document.getElementById('kpi-orders').innerText = '4,964';
+                document.getElementById('kpi-aov').innerText = '₹622.45';
+                document.getElementById('kpi-units').innerText = '8,723';
+            } else if (chn === 'ZOM') {
+                document.getElementById('kpi-net-sales').innerText = '₹19,44,660';
+                document.getElementById('kpi-orders').innerText = '2,649';
+                document.getElementById('kpi-aov').innerText = '₹734.11';
+                document.getElementById('kpi-units').innerText = '6,040';
+            } else {
+                document.getElementById('kpi-net-sales').innerText = '₹50,34,510';
+                document.getElementById('kpi-orders').innerText = '7,613';
+                document.getElementById('kpi-aov').innerText = '₹661.30';
+                document.getElementById('kpi-units').innerText = '14,763';
+            }
+        }
+
+        // 7. Render Charts
+        const ctxD = document.getElementById('chart-dayparts').getContext('2d');
+        new Chart(ctxD, {
             type: 'bar',
             data: {
-                labels: ['Morning Rush (08-12)', 'Afternoon Slump (12-16)', 'Evening Social (16-20)', 'Night Chill (20-23)'],
+                labels: ['Morning Rush (8-12)', 'Afternoon Slump (12-16)', 'Evening Social (16-20)', 'Night Chill (20-23)'],
                 datasets: [
-                    {
-                        label: 'In-Store POS Orders %',
-                        data: [45.0, 15.0, 30.0, 10.0],
-                        backgroundColor: '#D97706',
-                    },
-                    {
-                        label: 'Zomato Delivery Orders %',
-                        data: [20.0, 9.8, 45.0, 25.2],
-                        backgroundColor: '#0284C7',
-                    }
+                    { label: 'In-Store POS Orders %', data: [45.0, 15.0, 30.0, 10.0], backgroundColor: '#D97706' },
+                    { label: 'Zomato Delivery Orders %', data: [20.0, 9.8, 45.0, 25.2], backgroundColor: '#0284C7' }
                 ]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'top' },
-                    title: { display: false }
-                },
-                scales: {
-                    y: { beginAtZero: true, max: 50, ticks: { callback: v => v + '%' } }
-                }
-            }
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 50, ticks: { callback: v => v + '%' } } } }
         });
 
-        // SQL Code snippets
-        const queries = {
-            cleaning: `-- Query 01: Rejection Audit by Source & Reason\nSELECT \n    source_system,\n    rejection_reason,\n    COUNT(*) AS rejected_row_count\nFROM rejected_rows_audit\nGROUP BY source_system, rejection_reason\nORDER BY rejected_row_count DESC;\n\n-- Verified: 100% of raw rows reconciled (Raw = Accepted Lines + Rejections)`,
-            kpis: `-- Query 02: 90-Day Channel KPI Comparison\nSELECT \n    c.channel_name,\n    COUNT(o.order_id) AS total_orders,\n    SUM(CASE WHEN o.order_status = 'COMPLETED' THEN 1 ELSE 0 END) AS completed_orders,\n    ROUND(SUM(o.net_sales_amount), 2) AS net_sales_inr,\n    ROUND(SUM(o.net_sales_amount) / NULLIF(SUM(CASE WHEN o.order_status = 'COMPLETED' THEN 1 ELSE 0 END), 0), 2) AS aov_inr\nFROM fact_orders o\nJOIN dim_channels c ON o.channel_id = c.channel_id\nGROUP BY c.channel_name;`,
-            dayparts: `-- Query 03: Daypart Traffic Breakdown\nSELECT \n    ts.slot_name,\n    c.channel_name,\n    COUNT(fo.order_id) AS completed_orders,\n    ROUND(100.0 * COUNT(fo.order_id) / SUM(COUNT(fo.order_id)) OVER (PARTITION BY c.channel_name), 2) AS pct_channel_traffic\nFROM fact_orders fo\nJOIN dim_time_slots ts ON fo.slot_id = ts.slot_id\nJOIN dim_channels c ON fo.channel_id = c.channel_id\nWHERE fo.order_status = 'COMPLETED'\nGROUP BY ts.slot_id, c.channel_name;`,
-            promo: `-- Query 04: Identify High-Demand In-Store Items with Low Zomato Delivery\nSELECT \n    m.item_name,\n    SUM(CASE WHEN fo.channel_id = 'CHN-POS' THEN foi.quantity ELSE 0 END) AS in_store_units,\n    SUM(CASE WHEN fo.channel_id = 'CHN-ZOM' THEN foi.quantity ELSE 0 END) AS zomato_units\nFROM fact_order_items foi\nJOIN fact_orders fo ON foi.order_id = fo.order_id\nJOIN dim_menu_items m ON foi.item_id = m.item_id\nWHERE fo.order_status = 'COMPLETED'\nGROUP BY m.item_id, m.item_name\nHAVING in_store_units >= 200 AND zomato_units = 0;`
-        };
-
-        function showQuery(qKey) {
-            document.getElementById('sql-display').textContent = queries[qKey];
-            ['cleaning', 'kpis', 'dayparts', 'promo'].forEach(k => {
-                document.getElementById(`btn-q-${k}`).className = (k === qKey) 
-                    ? "px-3 py-1 text-xs font-semibold rounded-lg bg-slate-900 text-white" 
-                    : "px-3 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200";
-            });
-        }
-        showQuery('cleaning');
+        const ctxW = document.getElementById('chart-weekly').getContext('2d');
+        new Chart(ctxW, {
+            type: 'line',
+            data: {
+                labels: ['W34', 'W35', 'W36', 'W37', 'W38', 'W39', 'W40', 'W41', 'W42', 'W43', 'W44', 'W45', 'W46', 'W47'],
+                datasets: [
+                    { label: 'In-Store Net Sales (₹)', data: [220000, 215000, 224000, 218000, 226000, 221000, 219000, 223000, 218000, 225000, 220000, 224000, 219000, 227850], borderColor: '#D97706', tension: 0.3, fill: false },
+                    { label: 'Zomato Net Sales (₹)', data: [135000, 142000, 138000, 140000, 145000, 139000, 137000, 143000, 136000, 144000, 138000, 141000, 137000, 141660], borderColor: '#0284C7', tension: 0.3, fill: false }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { callback: v => '₹' + (v/1000) + 'k' } } } }
+        });
     </script>
 </body>
 </html>
